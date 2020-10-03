@@ -2,8 +2,9 @@ import argparse
 import networkx as nx
 from network_map import coordinates_2_id
 from network_map import coordinates_2_id_list
-from router import Router
-from packet import Packet
+from router import BaseRouter as Router
+from packet import BasePacket
+from packet import StatPacket
 
 
 def main():
@@ -38,7 +39,7 @@ def main():
     source_id = 0
     dest_coordinates = [m-1, n-1]
     current_coordinates = [0, 0]
-    pk0 = Packet(source_id, dest_coordinates, current_coordinates)
+    pk0 = StatPacket(source_id, dest_coordinates, current_coordinates)
 
     router_list[0].packet_in(pk0)
 

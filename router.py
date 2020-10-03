@@ -1,7 +1,7 @@
 import math
 
 
-class Router:
+class BaseRouter:
     def __init__(self, id, coordinates):
         self.id = id
         self.coordinates = coordinates  # [y, x]
@@ -17,23 +17,20 @@ class Router:
             coordinates = neighbours_coordinates[index]
             id = neighbours_id[index]
             direction = self.arbiter(coordinates)
-            self.neighbours_id[direction]=id
+            self.neighbours_id[direction] = id
 
     def packet_in(self, packet):
-        ''' store to input buffer '''
+        """ store to input buffer """
         if self.in_buffer_full():
             return False
         else:
             # update packet information before storing
-            packet.increase_clock_cycle()
-            packet.add_router(self.id)
-            packet.update_coordinates(self.coordinates)
-
+            packet.update_packet(self.id, self.coordinates)
             self.in_buffer.append(packet)
             return True
-    
+
     def packet_store(self, packet):
-        ''' store to local storage '''
+        """ store to local storage """
         self.local_storage.append(packet)
 
     def out_buffer_packet_peek(self):
@@ -49,21 +46,21 @@ class Router:
         if not self.out_buffer_empty():
             # remove the packet
             self.out_buffer.pop(0)
-    
+
     def out_buffer_empty(self):
-        if(len(self.out_buffer) == 0):
+        if len(self.out_buffer) == 0:
             return True
         else:
             return False
 
     def in_buffer_empty(self):
-        if(len(self.in_buffer) == 0):
+        if len(self.in_buffer) == 0:
             return True
         else:
             return False
 
     def in_buffer_full(self):
-        if(len(self.in_buffer) == self.buffer_size):
+        if len(self.in_buffer) == self.buffer_size:
             return True
         else:
             return False
@@ -93,19 +90,18 @@ class Router:
             self.in_buffer.pop(0)
 
     def arbiter(self, dest_coordinates):
-        ''' X-Y algorithm '''
+        """ X-Y algorithm """
         direction = None  # 0 self, 1 north, 2 east, 3 south, 4 west
-        x_diff = (dest_coordinates[1] - self.coordinates[1])
-        y_diff = (dest_coordinates[0] - self.coordinates[0])
-        if (x_diff > 0):  # go east
+        x_diff = dest_coordinates[1] - self.coordinates[1]
+        y_diff = dest_coordinates[0] - self.coordinates[0]
+        if x_diff > 0:  # go east
             direction = 2
-        elif (x_diff < 0):  # go west
+        elif x_diff < 0:  # go west
             direction = 4
-        elif (y_diff > 0):  # go south
+        elif y_diff > 0:  # go south
             direction = 3
-        elif (y_diff < 0):  # go north
+        elif y_diff < 0:  # go north
             direction = 1
         else:  # arrived
             direction = 0
         return direction
-
