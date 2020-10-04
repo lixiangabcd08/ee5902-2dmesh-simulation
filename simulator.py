@@ -4,7 +4,7 @@ from network_map import coordinates_2_id
 from network_map import coordinates_2_id_list
 from router import Router
 from packet import Packet
-
+from packet_generator import Generator
 
 def main():
     args = parser.parse_args()
@@ -21,7 +21,7 @@ def main():
 
     # create the routers and map them
     for router_id in range(number_of_routers):
-        print(router_id)
+        # print(router_id)
         # get the parameters
         coordinates = noc_map_nodes[router_id]
         neighbours_coordinates = list(noc_map.adj[coordinates])
@@ -35,19 +35,17 @@ def main():
         # print(coordinates_2_id(coordinates, m, n))  # debug
 
     # debug to input packet data into [0,0] to [m-1,n-1] 
-    source_id = 0
-    dest_coordinates = [m-1, n-1]
-    current_coordinates = [0, 0]
-    pk0 = Packet(source_id, dest_coordinates, current_coordinates)
+    generator = Generator(m,n)
+    pk0 = generator.generate_single()
 
-    router_list[0].packet_in(pk0)
+    router_list[pk0.source_id].packet_in(pk0)
 
     # run the simulation
 
     # number of cycles to simulate
     for cycle_count in range(10):
         for router_id in range(number_of_routers):
-            print(cycle_count, router_id, router_list[router_id].in_buffer_empty())
+            # print(cycle_count, router_id, router_list[router_id].in_buffer_empty())
             # get the output packet first
             dest_id, packet = router_list[router_id].sent_controller()
             if dest_id is not None:  # if there is packet
@@ -62,7 +60,8 @@ def main():
     # collect the statistics
 
     # debug fixed data
-    final_pkt = router_list[number_of_routers-1].local_storage[0]
+    dest_id = coordinates_2_id(pk0.dest_coordinates,m,n)
+    final_pkt = router_list[dest_id].local_storage[0]
     print(final_pkt.clock_cycle_taken, final_pkt.path_trace)
 
 
