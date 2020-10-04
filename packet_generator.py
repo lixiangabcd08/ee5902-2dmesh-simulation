@@ -1,4 +1,4 @@
-from packet import Packet
+from packet import StatPacket
 from network_map import coordinates_2_id
 import random
 
@@ -17,7 +17,7 @@ class Generator():
             if ini_point != des_point: # make sure the two points are not identical
                 has_two_points = True
         source_id = coordinates_2_id(ini_point,self.m,self.n)
-        return Packet(source_id,des_point,ini_point)
+        return StatPacket(source_id,des_point,ini_point)
 
 
     def gen_random_point(self):

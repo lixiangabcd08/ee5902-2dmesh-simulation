@@ -2,14 +2,17 @@ import argparse
 import networkx as nx
 from network_map import coordinates_2_id
 from network_map import coordinates_2_id_list
-from router import Router
-from packet import Packet
+
+from router import BaseRouter as Router
+from packet import BasePacket
+from packet import StatPacket
 from packet_generator import Generator
+
 
 def main():
     args = parser.parse_args()
     m, n = args.m, args.n
-    print(args)
+    # print(args)
     # create the network mapping
     noc_map = nx.grid_2d_graph(m, n)
     noc_map_nodes = list(noc_map.nodes)
@@ -62,6 +65,7 @@ def main():
     # debug fixed data
     dest_id = coordinates_2_id(pk0.dest_coordinates,m,n)
     final_pkt = router_list[dest_id].local_storage[0]
+    print('Source: ',pk0.source_id,'; Destination: ',pk0.dest_coordinates)
     print(final_pkt.clock_cycle_taken, final_pkt.path_trace)
 
 
