@@ -1,4 +1,4 @@
-''' class for packet '''
+""" class for packet """
 
 
 class BasePacket:
@@ -16,19 +16,22 @@ class BasePacket:
 
 class StatPacket(BasePacket):
     """ with more variables for statics tracking """
-    def __init__(self, source_id, dest_coordinates, current_coordinates):
+
+    def __init__(
+        self, source_id, dest_coordinates, current_coordinates, start_clock_cycle
+    ):
         super().__init__(source_id, dest_coordinates, current_coordinates)
         self.path_trace = [source_id]
         self.clock_cycle_taken = 0
+        self.start_clock_cycle = start_clock_cycle
 
     def update_packet(self, router_id, current_coordinates):
-        ''' overloading parent function '''
-        self.increase_clock_cycle()
+        """ overloading parent function """
         self.add_router_to_path_trace(router_id)
         self.update_coordinates(current_coordinates)
 
-    def increase_clock_cycle(self):
-        self.clock_cycle_taken += 1
+    def update_clock_cycle(self, current_clock_cycle):
+        self.clock_cycle_taken = current_clock_cycle - self.start_clock_cycle
 
     def add_router_to_path_trace(self, router_id):
         self.path_trace.append(router_id)

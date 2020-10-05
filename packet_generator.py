@@ -9,7 +9,7 @@ class Generator():
         self.n = n
 
     # generate a single packet
-    def generate_single(self):
+    def generate_single(self, current_clock_cycle):
         has_two_points = False
         while not has_two_points:
             ini_point = self.gen_random_point()
@@ -17,7 +17,7 @@ class Generator():
             if ini_point != des_point: # make sure the two points are not identical
                 has_two_points = True
         source_id = coordinates_2_id(ini_point,self.m,self.n)
-        return StatPacket(source_id,des_point,ini_point)
+        return StatPacket(source_id,des_point,ini_point, current_clock_cycle)
 
 
     def gen_random_point(self):
