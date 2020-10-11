@@ -9,6 +9,8 @@ from router import BaseRouter as Router
 from packet import BasePacket
 from packet import StatPacket
 from packet_generator import Generator
+from packet_generator import RandomGenerator
+from packet_generator import ConstGenerator
 
 
 def main():
@@ -45,7 +47,9 @@ def main():
         # print(coordinates_2_id(coordinates, m, n))  # debug
 
     # init the packet generator
-    generator = Generator(m, n)
+    generator1 = RandomGenerator(m, n, max_pkt=50)
+    generator2 = ConstGenerator(m, n, sir=10, max_pkt=50)
+    
 
     ### debug to input packet data
     # current_clock_cycle = 0
@@ -60,8 +64,8 @@ def main():
     for current_clock_cycle in range(number_of_routers * 10):
         # set up the testing packets in first cycle
         if current_clock_cycle == 0:
-            for num in range(num_of_testing_pkts):
-                pk0 = generator.generate_single(current_clock_cycle)
+            packets = generator2.generate_list(current_clock_cycle)
+            for pk0 in packets:
                 router_list[pk0.source_id].packet_in(pk0, 0)
 
         empty_flag = True
