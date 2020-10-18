@@ -18,7 +18,12 @@ class BaseReceiver:
         self.number_of_packet_received += 1
 
     def print_stat(self):
-        print(self.id, ": number_of_packet_received =", self.number_of_packet_received)
+        print(
+            "Router ",
+            self.id,
+            ": number_of_packet_received =",
+            self.number_of_packet_received,
+        )
 
 
 class PacketReceiver(BaseReceiver):
@@ -37,7 +42,12 @@ class PacketReceiver(BaseReceiver):
         if self.local_storage:
             for pkt in self.local_storage:
                 print(
-                    "Source: ", pkt.source_id, "; Destination: ",
-                    pkt.dest_coordinates
+                    "Pkt source:",
+                    pkt.source_id,
+                    ", Dest:",
+                    pkt.dest_coordinates,
+                    ", clk:",
+                    pkt.clock_cycle_taken,
+                    "path:",
+                    pkt.path_trace,
                 )
-                print(pkt.clock_cycle_taken, pkt.path_trace)

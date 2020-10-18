@@ -49,7 +49,6 @@ def main():
     # init the packet generator
     generator1 = RandomGenerator(m, n, max_pkt=50)
     generator2 = ConstGenerator(m, n, sir=10, max_pkt=50)
-    
 
     ### debug to input packet data
     # current_clock_cycle = 0
@@ -62,15 +61,15 @@ def main():
 
     # number of cycles to simulate
     for current_clock_cycle in range(number_of_routers * 10):
-        # set up the testing packets in first cycle
+        """ set up the testing packets in first cycle """
         if current_clock_cycle == 0:
-            packets = generator2.generate_list(current_clock_cycle)
+            packets = generator1.generate_list(current_clock_cycle)
             for pk0 in packets:
                 router_list[pk0.source_id].packet_in(pk0, 0)
 
         empty_flag = True
 
-        # run the routers
+        """ This is to run the routers for 1 cycle to send out pkt """
         for router_id in range(number_of_routers):
             # check if the router is empty
             is_empty = router_list[router_id].empty_buffers()
@@ -90,7 +89,19 @@ def main():
                 if status is True:
                     # remove from sending router
                     router_list[router_id].sent_controller_post()
-            # else do nothing, prepare for next cycle
+
+        """
+        Why only move the packet after all routers send their packets?
+        Ans: during the same cycle, it is not possible to write in and pop out 
+        the same FIFO. E.g. When the FIFO (includes buffer in/out) is full, if
+        buffer out has move the data in that cycle, software wise it is not full
+        anymore, but hardware wise it is impossible to write into that buffer in
+        that clock cycle, so it is still full until the next cycle. By doing
+        the internal buffer moving after all routers are done, it is to ensure
+        the software follows how hardware moves.
+        """
+        # loop 2nd time to move the buffers in the router
+        for router_id in range(number_of_routers):
             router_list[router_id].prepare_next_cycle()
 
         if current_clock_cycle % 100 == 0:  # for debugging
@@ -115,5 +126,11 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--num_of_testing_pkts", type=int, default="5", help="type of pkts to send"
+    )
+    parser.add_argument(
+        "--testing_mode",
+        type=int,
+        default="0",
+        help="0->single pkt test, 1->multiple pkt test",
     )
     main()
