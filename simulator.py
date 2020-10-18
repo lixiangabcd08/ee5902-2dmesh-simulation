@@ -62,10 +62,9 @@ def main():
     # number of cycles to simulate
     for current_clock_cycle in range(number_of_routers * 10):
         """ set up the testing packets in first cycle """
-        if current_clock_cycle == 0:
-            packets = generator1.generate_list(current_clock_cycle)
-            for pk0 in packets:
-                router_list[pk0.source_id].packet_in(pk0, 0)
+        packets = generator1.generate_list(current_clock_cycle)
+        for packet in packets:
+            router_list[packet.source_id].packet_in(packet, 0)
 
         empty_flag = True
 
