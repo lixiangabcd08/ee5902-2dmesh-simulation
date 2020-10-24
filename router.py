@@ -1,30 +1,34 @@
 """
 Module: BaseRouter
 Desp:   Basic XY 2d mesh router for baseline testing
-version: 0.0.2
+version: 0.1.0
 
 requirements: receiver.py
 
 Changelog:  0.0.1 - single buffer router (software)
             0.0.2 - 1 buffer per port and more functions
+            0.1.0 - combined the buffer together for easy calculation
+                    use a flag (pkt_available_to_send_now) to mark output data
+                    Making buffer signals more hardware like
 """
 
 
 class BaseRouter:
-    SELF = 0 # careful of the case
+    SELF = 0  # careful of the case
     EAST = 2
     WEST = 4
     SOUTH = 3
     NORTH = 1
+
     def __init__(self, id, coordinates, rx_address):
         self.id = id
         self.coordinates = coordinates  # [y, x]
         self.neighbours_id = [id, None, None, None, None]
-        self.in_buffer = [[], [], [], [], []]  # 5 buffers, 1 for each port
-        self.out_buffer = [[], [], [], [], []] 
-        self.buffer_size = 8
+        self.buffer = [[], [], [], [], []]  # 5 buffers, 1 for each port
+        self.pkt_available_to_send_now = [False, False, False, False, False]
+        self.buffer_size = 4
         self.local_storage = rx_address
-        self.current_serving_port = 4 # so first cycle will server port 0
+        self.current_serving_port = 4  # so first cycle will server port 0
 
     def set_neighbours(self, neighbours_coordinates, neighbours_id):
         """ set the id in the respective port directions """
@@ -34,14 +38,16 @@ class BaseRouter:
             direction = self.get_neighbour_direction(coordinates)
             self.neighbours_id[direction] = id
 
+    ### buffer operations ###
+
     def packet_in(self, packet, port):
         """ store to input buffer """
-        if self.in_buffer_full(port):
+        if self.buffer_full(port):
             return False
         else:
             # update packet information before storing
             packet.update_packet(self.id, self.coordinates)
-            self.in_buffer[port].append(packet)
+            self.buffer[port].append(packet)
             return True
 
     def packet_store(self, packet, current_clock_cycle):
@@ -49,36 +55,55 @@ class BaseRouter:
         packet.update_clock_cycle(current_clock_cycle)  # update cycle
         self.local_storage.store(packet)
 
-    def out_buffer_packet_peek(self, port):
+    def buffer_packet_peek(self, port):
         """ retrive the output buffer data """
-        if not self.out_buffer_empty(port):
-            packet = self.out_buffer[port][0]
+        if (self.pkt_available_to_send_now[port]):
+            packet = self.buffer[port][0]  # always the first pkt
             return packet
         else:
             return None
 
-    def out_buffer_packet_remove(self, port):
+    def buffer_packet_remove(self, port):
         """ remove the output buffer data """
-        if not self.out_buffer_empty(port):
+        if (not self.buffer_empty(port)):
             # remove the packet
-            self.out_buffer[port].pop(0)
+            self.buffer[port].pop(0)
+        else:
+            raise BufferError("Trying to remove packet from empty buffer")
 
-    def out_buffer_empty(self, port):
-        return (not self.out_buffer[port])  # empty list == false
+    ### buffer status ###
 
-    def in_buffer_empty(self, port):
-        return (not self.in_buffer[port])
+    def buffer_empty(self, port):
+        """ for current cycle, like hardware FIFO status """
+        # if there is a packet available to output, the buffer is not empty
+        if self.pkt_available_to_send_now[port]:
+            return False
+        else:
+            return not self.buffer[port]  # empty list == false
 
-    def in_buffer_full(self, port):
-        if len(self.in_buffer[port]) == self.buffer_size:
+    def buffer_full(self, port):
+        """ for current cycle, like hardware FIFO status """
+        if len(self.buffer[port]) == self.buffer_size:
+            return True
+        # packet was sent, hardware wise buffer still full
+        elif (
+            len(self.buffer[port]) == self.buffer_size-1
+            and self.pkt_available_to_send_now[port]
+        ):
             return True
         else:
             return False
 
+    def buffer_empty_actual(self, port):
+        """ for next cycle, to determine the next state """
+        return not self.buffer[port]
+
+    ### router functions ###
+
     def sent_controller_pre(self, current_clock_cycle):
         """ serve the current port and check if dest router free """
         port = self.scheduler()
-        packet = self.out_buffer_packet_peek(port)
+        packet = self.buffer_packet_peek(port)
         dest_id = None
         if packet is not None:
             # check where the packet is going
@@ -87,7 +112,7 @@ class BaseRouter:
 
             # if packet has arrived
             if direction == 0:
-                self.out_buffer_packet_remove(port)
+                self.buffer_packet_remove(port)
                 self.packet_store(packet, current_clock_cycle)
                 dest_id = None
 
@@ -96,7 +121,7 @@ class BaseRouter:
 
     def sent_controller_post(self):
         """ remove the output buffer data from the serving port """
-        self.out_buffer_packet_remove(self.current_serving_port)
+        self.buffer_packet_remove(self.current_serving_port)
 
     def receive_check(self, packet, sender_id):
         """ check the correct port buffer for incoming pkt """
@@ -104,34 +129,13 @@ class BaseRouter:
         return self.packet_in(packet, port)
 
     def prepare_next_cycle(self):
-        # move the data to output buffer only if the previous data was sent
-        for port in range(5):
-            if not self.in_buffer_empty(port) and self.out_buffer_empty(port):
-                # move 1 packet to output buffer
-                self.out_buffer[port].append(self.in_buffer[port][0])
-                self.in_buffer[port].pop(0)
-
-    def debug_empty_in_buffer(self):
-        """ for debugging """
-        for port in range(5):
-            status = self.in_buffer_empty(port)
-            if status is False:
-                print(port, status)
-    
-    def empty_buffers(self):
-        """ 
-        For: early program termination
-        Func: check if all buffer empty.  Return False for any not empty buffer
-        """
-        for port in range(5):
-            status = self.in_buffer_empty(port)
-            if status is False:
-                return False
-        for port in range(5):
-            status = self.out_buffer_empty(port)
-            if status is False:
-                return False
-        return True
+        # mark data available to send for next cycle
+        for port in range(len(self.buffer)):
+            if self.buffer_empty_actual(port):  # empty buffer
+                self.pkt_available_to_send_now[port] = False
+            else:
+                # set for next cycle
+                self.pkt_available_to_send_now[port] = True
 
     def scheduler(self):
         """
@@ -179,3 +183,23 @@ class BaseRouter:
         else:  # arrived
             direction = 0
         return direction
+
+    ### external functions for simulator performance ###
+
+    def debug_empty_buffer(self):
+        """ for debugging """
+        for port in range(len(self.buffer)):
+            status = self.buffer_empty_actual(port)
+            if status is False:
+                print(port, status)
+
+    def empty_buffers(self):
+        """
+        For: early program termination
+        Func: check if all buffer empty.  Return False for any filled buffer
+        """
+        for port in range(len(self.buffer)):
+            status = self.buffer_empty_actual(port)
+            if status is False:
+                return False
+        return True

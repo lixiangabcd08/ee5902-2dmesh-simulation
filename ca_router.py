@@ -8,6 +8,8 @@ requirements: router.py
 Changelog:  0.0.1 - router
 """
 from router import BaseRouter
+
+
 class CARouter(BaseRouter):
     def __init__(self, id, coordinates, rx_address):
 
@@ -29,12 +31,12 @@ class CARouter(BaseRouter):
         """
         full = 0
         half_full = 0
-        for port_in_buffer, port_out_port in zip(self.in_buffer, self.out_buffer):
-            if len(port_in_buffer)+len(port_out_port) == self.buffer_size:
+        for buffer in (self.buffer):
+            if len(buffer) == self.buffer_size:
                 full += 1
-            if len(port_in_buffer)+len(port_out_port) >= self.buffer_size:
+            if len(buffer) >= self.buffer_size:
                 half_full += 1
-        c_full = True if len(self.in_buffer[channel]) + len(self.out_buffer[channel]) == self.buffer_size else False
+        c_full = True if len(self.buffer[channel]) == self.buffer_size else False
         busy_index = None
         # look up table
         if not c_full and half_full <= 2:
@@ -98,5 +100,4 @@ class CARouter(BaseRouter):
                 direction = self.WEST
         else:
             direction = self.SELF
-            
         return direction
