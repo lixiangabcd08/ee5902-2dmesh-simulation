@@ -11,6 +11,11 @@ Changelog:  0.0.1 - single buffer router (software)
 
 
 class BaseRouter:
+    SELF = 0 # careful of the case
+    EAST = 2
+    WEST = 4
+    SOUTH = 3
+    NORTH = 1
     def __init__(self, id, coordinates, rx_address):
         self.id = id
         self.coordinates = coordinates  # [y, x]
@@ -26,7 +31,7 @@ class BaseRouter:
         for index in range(len(neighbours_coordinates)):
             coordinates = neighbours_coordinates[index]
             id = neighbours_id[index]
-            direction = self.arbiter(coordinates)
+            direction = self.get_neighbour_direction(coordinates)
             self.neighbours_id[direction] = id
 
     def packet_in(self, packet, port):
@@ -140,6 +145,25 @@ class BaseRouter:
         """
         Func: To determine which direction to send the packet
         Algo: X-Y algorithm
+        """
+        direction = None  # 0 self, 1 north, 2 east, 3 south, 4 west
+        x_diff = dest_coordinates[1] - self.coordinates[1]
+        y_diff = dest_coordinates[0] - self.coordinates[0]
+        if x_diff > 0:  # go east
+            direction = 2
+        elif x_diff < 0:  # go west
+            direction = 4
+        elif y_diff > 0:  # go south
+            direction = 3
+        elif y_diff < 0:  # go north
+            direction = 1
+        else:  # arrived
+            direction = 0
+        return direction
+
+    def get_neighbour_direction(self, dest_coordinates):
+        """
+        Func: To determine which direction is the neighbour
         """
         direction = None  # 0 self, 1 north, 2 east, 3 south, 4 west
         x_diff = dest_coordinates[1] - self.coordinates[1]

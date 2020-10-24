@@ -6,6 +6,7 @@ from network_map import coordinates_2_id_list
 from receiver import PacketReceiver as rx
 
 from router import BaseRouter as Router
+from ca_router import CARouter
 from packet import BasePacket
 from packet import StatPacket
 from packet_generator import Generator
@@ -17,6 +18,7 @@ def main():
     args = parser.parse_args()
     m, n = args.m, args.n
     num_of_testing_pkts = args.num_of_testing_pkts
+    algo_type = args.algo_type
     print(args)
     # create the network mapping
     noc_map = nx.grid_2d_graph(m, n)
@@ -39,12 +41,22 @@ def main():
         neighbours_coordinates = list(noc_map.adj[coordinates])
         neighbours_id = coordinates_2_id_list(neighbours_coordinates, m, n)
         # create the router based on algo
-        router_list.append(Router(router_id, coordinates, rx_address))
+        if algo_type == 4:
+            router_list.append(CARouter(router_id, coordinates, rx_address))
+        else:
+            router_list.append(Router(router_id, coordinates, rx_address))
         router_list[router_id].set_neighbours(neighbours_coordinates, neighbours_id)
 
-        # print(router_list[router_id].neighbours_id)  # debug
-        # print(router_list[router_id].coordinates)  # debug
-        # print(coordinates_2_id(coordinates, m, n))  # debug
+    if algo_type == 4:
+        # This can only be done after all the routers are initiated
+        for router_id in range(number_of_routers):
+            # get the parameters
+            coordinates = noc_map_nodes[router_id]
+            neighbours_coordinates = list(noc_map.adj[coordinates])
+            neighbours_id = coordinates_2_id_list(neighbours_coordinates, m, n)
+            neighbour_routers = [router_list[neighbour_id] for neighbour_id in neighbours_id]
+            router_list[router_id].set_neighbour_routers(neighbour_routers)
+
 
     # init the packet generator
     generator1 = RandomGenerator(m, n, max_pkt=50)
