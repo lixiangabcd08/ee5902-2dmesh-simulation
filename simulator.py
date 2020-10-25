@@ -1,11 +1,14 @@
 import argparse
 import networkx as nx
+import time
+
 from network_map import coordinates_2_id
 from network_map import coordinates_2_id_list
 
 from receiver import PacketReceiver as rx
 
 from router import BaseRouter as Router
+from elra_router import ELRARouter
 from ca_router import CARouter
 from packet import BasePacket
 from packet import StatPacket
@@ -44,7 +47,7 @@ def main():
         if algo_type == 4:
             router_list.append(CARouter(router_id, coordinates, rx_address))
         elif (algo_type == 3):  # future use
-            router_list.append(Router(router_id, coordinates, rx_address))
+            router_list.append(ELRARouter(router_id, coordinates, rx_address))
         elif (algo_type == 2):  # future use
             router_list.append(Router(router_id, coordinates, rx_address))
         elif (algo_type == 1):  # future use
@@ -79,7 +82,7 @@ def main():
     # run the simulation
 
     # number of cycles to simulate for single packet testing
-    for current_clock_cycle in range(number_of_routers * 10):
+    for current_clock_cycle in range(number_of_routers * 3):
         """ set up the testing packets in first cycle """
         if current_clock_cycle == 0:
             # packets = generator1.generate_list(current_clock_cycle)
@@ -101,7 +104,7 @@ def main():
             # print("current ", current_clock_cycle, router_id)  # debug
             # router_list[router_id].debug_empty_in_buffer()  # debug
             # get the output packet first
-            dest_id, packet = router_list[router_id].sent_controller_pre(
+            dest_id, packet = router_list[router_id].send_controller_pre(
                 current_clock_cycle
             )
             if dest_id is not None:  # if there is packet
@@ -110,7 +113,7 @@ def main():
                 )  # try sending
                 if status is True:
                     # remove from sending router
-                    router_list[router_id].sent_controller_post()
+                    router_list[router_id].send_controller_post()
 
         """
         Why only set the next output pkt after all routers sent their pkt?
@@ -135,6 +138,7 @@ def main():
             print("ending cycle = ", current_clock_cycle)
             break
 
+    print("--- time taken: %s seconds ---" % (time.time() - start_time))  # time
     # collect the statistics
     for router_id in range(number_of_routers):
         receiver_list[router_id].print_stat()
@@ -157,4 +161,5 @@ if __name__ == "__main__":
         default="0",
         help="0->single pkt test, 1->multiple pkt test",
     )
+    start_time = time.time()
     main()

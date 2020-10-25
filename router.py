@@ -13,6 +13,8 @@ Changelog:  0.0.1 - single buffer router (software)
             0.2.0 - using 1 wrapper function to setup the router
                   - bug fix on buffer_empty, might return !empty buffer when
                     HW should be empty
+            0.2.1 - bug fix on buffer_full, not enough status to indicate when
+                    pkt sent but buffer has 1 empty space. Added pkt_sent
 """
 
 
@@ -30,6 +32,7 @@ class BaseRouter:
         self.neighbour_routers = [None, None, None, None, None]  # ignore local
         self.buffer = [[], [], [], [], []]  # 5 buffers, 1 for each port
         self.pkt_available_to_send_now = [False, False, False, False, False]
+        self.pkt_sent = [False, False, False, False, False]  # for buffer_full
         self.buffer_size = 4
         self.local_storage = rx_address
         self.current_serving_port = 4  # so first cycle will server port 0
@@ -99,7 +102,7 @@ class BaseRouter:
         if not self.pkt_available_to_send_now[port]:
             return True
         else:
-            return False # assume that the flag is set correctly
+            return False  # assume that the flag is set correctly
 
     def buffer_full(self, port):
         """ for current cycle, like hardware FIFO status """
@@ -109,7 +112,7 @@ class BaseRouter:
         # packet was sent, but hardware wise buffer still considered full
         elif (
             len(self.buffer[port]) == self.buffer_size-1
-            and self.pkt_available_to_send_now[port]
+            and self.pkt_sent[port]
         ):
             return True
         else:
@@ -121,7 +124,7 @@ class BaseRouter:
 
     ### router functions ###
 
-    def sent_controller_pre(self, current_clock_cycle):
+    def send_controller_pre(self, current_clock_cycle):
         """ serve the current port and check if dest router free """
         port = self.scheduler()
         packet = self.buffer_packet_peek(port)
@@ -140,9 +143,10 @@ class BaseRouter:
         # upper level check if neighour_buffer is free
         return dest_id, packet
 
-    def sent_controller_post(self):
-        """ remove the output buffer data from the serving port """
+    def send_controller_post(self):
+        """ remove the buffer data from the serving port """
         self.buffer_packet_remove(self.current_serving_port)
+        self.pkt_sent[self.current_serving_port] = True  # to indicate the pkt sent
 
     def receive_check(self, packet, sender_id):
         """ check the correct port buffer for incoming pkt """
@@ -150,8 +154,11 @@ class BaseRouter:
         return self.packet_in(packet, port)
 
     def prepare_next_cycle(self):
-        # mark data available to send for next cycle
         for port in range(len(self.buffer)):
+            # reset the sent flag
+            self.pkt_sent[port] = False
+
+            # mark data available to send for next cycle
             if self.buffer_empty_actual(port):  # empty buffer
                 self.pkt_available_to_send_now[port] = False
             else:
