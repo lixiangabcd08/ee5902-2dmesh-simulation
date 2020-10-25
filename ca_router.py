@@ -15,7 +15,6 @@ class CARouter(BaseRouter):
 
         super().__init__(id, coordinates, rx_address)
         self.neighbour_routers = [[], [], [], [], []] # constant parameters
-        self.buffer_size = 4
 
     def set_neighbour_routers(self, neighbour_routers):
         """ set the beighbour router in the respective port directions """
@@ -34,7 +33,7 @@ class CARouter(BaseRouter):
         for buffer in (self.buffer):
             if len(buffer) == self.buffer_size:
                 full += 1
-            if len(buffer) >= self.buffer_size:
+            if len(buffer) >= (self.buffer_size/2):
                 half_full += 1
         c_full = True if len(self.buffer[channel]) == self.buffer_size else False
         busy_index = None
@@ -99,5 +98,10 @@ class CARouter(BaseRouter):
             else:
                 direction = self.WEST
         else:
-            direction = self.SELF
+            if ey > 0:
+                direction = self.SOUTH
+            elif ey < 0:
+                direction = self.NORTH
+            else:
+                direction = self.SELF
         return direction
