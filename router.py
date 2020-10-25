@@ -1,7 +1,7 @@
 """
 Module: BaseRouter
 Desp:   Basic XY 2d mesh router for baseline testing
-version: 0.2.1
+version: 0.2.2
 
 requirements: receiver.py
 
@@ -15,6 +15,7 @@ Changelog:  0.0.1 - single buffer router (software)
                     HW should be empty
             0.2.1 - bug fix on buffer_full, not enough status to indicate when
                     pkt sent but buffer has 1 empty space. Added pkt_sent
+            0.2.2 - integrate the send_controller to simply top operation
 """
 
 
@@ -124,24 +125,39 @@ class BaseRouter:
 
     ### router functions ###
 
+    def send_controller(self, current_clock_cycle):
+        """
+        Top warpper to run the send packet
+        General steps:
+        Get the packet, check if the receiving router free, the remove pkt
+        """
+        direction, packet = self.send_controller_pre(current_clock_cycle)
+        if direction is not None:  # if there is packet
+            print(self.id, direction)
+            status = self.neighbour_routers[direction].receive_check(
+                packet, self.id
+            )  # try sending
+            if status is True:
+                # remove from sending router
+                self.send_controller_post()
+
     def send_controller_pre(self, current_clock_cycle):
         """ serve the current port and check if dest router free """
         port = self.scheduler()
         packet = self.buffer_packet_peek(port)
-        dest_id = None
+        direction = None
         if packet is not None:
             # check where the packet is going
             direction = self.arbiter(packet.dest_coordinates)
-            dest_id = self.neighbours_id[direction]
 
             # if packet has arrived
             if direction == 0:
                 self.buffer_packet_remove(port)
                 self.packet_store(packet, current_clock_cycle)
-                dest_id = None
+                direction = None
 
         # upper level check if neighour_buffer is free
-        return dest_id, packet
+        return direction, packet
 
     def send_controller_post(self):
         """ remove the buffer data from the serving port """

@@ -96,24 +96,15 @@ def main():
 
         """ This is to run the routers for 1 cycle to send out pkt """
         for router_id in range(number_of_routers):
-            # check if the router is empty
+            # check if the router is empty for early cycle termination
             is_empty = router_list[router_id].empty_buffers()
             if not is_empty:
                 empty_flag = False
 
             # print("current ", current_clock_cycle, router_id)  # debug
             # router_list[router_id].debug_empty_in_buffer()  # debug
-            # get the output packet first
-            dest_id, packet = router_list[router_id].send_controller_pre(
-                current_clock_cycle
-            )
-            if dest_id is not None:  # if there is packet
-                status = router_list[dest_id].receive_check(
-                    packet, router_id
-                )  # try sending
-                if status is True:
-                    # remove from sending router
-                    router_list[router_id].send_controller_post()
+            # let router handles the background check
+            router_list[router_id].send_controller(current_clock_cycle)
 
         """
         Why only set the next output pkt after all routers sent their pkt?

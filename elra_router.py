@@ -48,10 +48,10 @@ class ELRARouter(BaseRouter):
 
         self.port_groups = temp_port_groups
         # print(self.id, self.port_groups)  # debug
-    
+
     def set_port_status(self, port):
         """ inital the status """
-        self.port_status[port]=[0,0,0,0,0,0]  # 0 w_sum and the rest
+        self.port_status[port] = [0, 0, 0, 0, 0, 0]  # 0 w_sum and the rest
 
     ### buffer status ###
     def buffer_over_threshold_v(self, port):
@@ -93,7 +93,7 @@ class ELRARouter(BaseRouter):
             temp_serving_port = 0
             for port in self.port_groups[self.current_serving_group]:
                 curr_w_sum = self.port_status[port][0]  # always at position 0
-                if (curr_w_sum > max_w_sum):
+                if curr_w_sum > max_w_sum:
                     # print(port,max_w_sum)
                     max_w_sum = curr_w_sum
                     temp_serving_port = port
@@ -103,7 +103,7 @@ class ELRARouter(BaseRouter):
     ### special ELRA functions ###
 
     def update_group_port_status(self, current_serving_group):
-        for port in (self.port_groups[current_serving_group]):
+        for port in self.port_groups[current_serving_group]:
             self.update_port_status_weight(port)
 
     def update_port_status_weight(self, port):
@@ -120,8 +120,8 @@ class ELRARouter(BaseRouter):
 
     def update_port_status_after_serving(self):
         """ do this after current serving port is confirmed """
-        for port in (self.port_groups[self.current_serving_group]):
-            if (port == self.current_serving_port and self.pkt_sent[port] == True):
+        for port in self.port_groups[self.current_serving_group]:
+            if port == self.current_serving_port and self.pkt_sent[port] == True:
                 self.update_status_for_granted(port)
             else:
                 self.update_status_for_waiting(port)
@@ -129,10 +129,10 @@ class ELRARouter(BaseRouter):
     def update_status_for_granted(self, port):
         self.port_status[port][4] = 1
         self.port_status[port][5] = 0
-    
+
     def update_status_for_waiting(self, port):
         # check if buffer empty, then it is not waiting
-        if (self.buffer_empty(port)):
+        if self.buffer_empty(port):
             self.port_status[port][4] = 0
             self.port_status[port][5] = 0
         else:
@@ -142,4 +142,3 @@ class ELRARouter(BaseRouter):
     def weight_sum(self, w_p, w_b, w_c, w_g, w_w):
         """ calculate the total traffic status weight """
         return w_p * 3 + w_b * 1 + w_c * 2 + w_g * (-1) + w_w * 1
-
