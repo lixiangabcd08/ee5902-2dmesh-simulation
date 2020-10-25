@@ -47,6 +47,7 @@ def main():
             router_list.append(Router(router_id, coordinates, rx_address))
         router_list[router_id].set_neighbours(neighbours_coordinates, neighbours_id)
 
+    # set the neighbour info necessary for algo 4
     if algo_type == 4:
         # This can only be done after all the routers are initiated
         for router_id in range(number_of_routers):

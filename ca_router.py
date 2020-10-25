@@ -50,7 +50,7 @@ class CARouter(BaseRouter):
             busy_index = 4
         if not c_full and full > 2:
             busy_index = 5
-        if c_full and full >= 1: # > 1 on pseudo code
+        if c_full and full > 1:
             busy_index = 6
         if c_full and full > 2:
             busy_index = 7
@@ -97,11 +97,11 @@ class CARouter(BaseRouter):
                     direction = self.NORTH
             else:
                 direction = self.WEST
-        else:
+        else: # ex==0
             if ey > 0:
                 direction = self.SOUTH
             elif ey < 0:
                 direction = self.NORTH
-            else:
+            else: # reached destination
                 direction = self.SELF
         return direction
