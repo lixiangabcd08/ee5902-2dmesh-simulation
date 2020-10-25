@@ -10,6 +10,9 @@ Changelog:  0.0.1 - single buffer router (software)
             0.1.0 - combined the buffer together for easy calculation
                     use a flag (pkt_available_to_send_now) to mark output data
                     Making buffer signals more hardware like
+            0.2.0 - using 1 wrapper function to setup the router
+                  - bug fix on buffer_empty, might return !empty buffer when
+                    HW should be empty
 """
 
 
@@ -24,19 +27,36 @@ class BaseRouter:
         self.id = id
         self.coordinates = coordinates  # [y, x]
         self.neighbours_id = [id, None, None, None, None]
+        self.neighbour_routers = [None, None, None, None, None]  # ignore local
         self.buffer = [[], [], [], [], []]  # 5 buffers, 1 for each port
         self.pkt_available_to_send_now = [False, False, False, False, False]
         self.buffer_size = 4
         self.local_storage = rx_address
         self.current_serving_port = 4  # so first cycle will server port 0
 
-    def set_neighbours(self, neighbours_coordinates, neighbours_id):
-        """ set the id in the respective port directions """
-        for index in range(len(neighbours_coordinates)):
-            coordinates = neighbours_coordinates[index]
-            id = neighbours_id[index]
+    ### setup the router ###
+
+    def setup_router(self, neighbour_routers):
+        """ use/overload this function to setup the router """
+        self.set_neighbour_routers(neighbour_routers)
+        self.set_neighbours()
+
+    def set_neighbour_routers(self, neighbour_routers):
+        """ set the neighbour router in the respective port directions """
+        for router in neighbour_routers:
+            coordinates = router.coordinates
+            # use the old arbiter to decide the direction of the neighbour
             direction = self.get_neighbour_direction(coordinates)
-            self.neighbours_id[direction] = id
+            self.neighbour_routers[direction] = router
+
+    def set_neighbours(self):
+        """
+        set the id in the respective port directions
+        a bit redundant if we can get the neighbour address to access directly
+        """
+        for port, router in enumerate(self.neighbour_routers):
+            if router:
+                self.neighbours_id[port] = router.id
 
     ### buffer operations ###
 
@@ -75,17 +95,18 @@ class BaseRouter:
 
     def buffer_empty(self, port):
         """ for current cycle, like hardware FIFO status """
-        # if there is a packet available to output, the buffer is not empty
-        if self.pkt_available_to_send_now[port]:
-            return False
+        # when no packet available to output, the buffer is empty in this cycle
+        if not self.pkt_available_to_send_now[port]:
+            return True
         else:
-            return not self.buffer[port]  # empty list == false
+            return False # assume that the flag is set correctly
 
     def buffer_full(self, port):
         """ for current cycle, like hardware FIFO status """
+        # no packet sent, but FIFO still full
         if len(self.buffer[port]) == self.buffer_size:
             return True
-        # packet was sent, hardware wise buffer still full
+        # packet was sent, but hardware wise buffer still considered full
         elif (
             len(self.buffer[port]) == self.buffer_size-1
             and self.pkt_available_to_send_now[port]

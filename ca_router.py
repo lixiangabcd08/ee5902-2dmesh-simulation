@@ -1,28 +1,20 @@
 """
 Module: CA Router
 Desp: Congestion-Aware Routing Algorithm
-version: 0.0.1
+version: 0.0.2
 
 requirements: router.py
 
 Changelog:  0.0.1 - router
+            0.0.2 - bug fix for arbiter
+            0.1.0 - moved set_neighbour_routers to baseRouter
 """
 from router import BaseRouter
 
 
 class CARouter(BaseRouter):
     def __init__(self, id, coordinates, rx_address):
-
         super().__init__(id, coordinates, rx_address)
-        self.neighbour_routers = [[], [], [], [], []] # constant parameters
-
-    def set_neighbour_routers(self, neighbour_routers):
-        """ set the beighbour router in the respective port directions """
-        for router in neighbour_routers:
-            coordinates = router.coordinates
-            # use the old arbiter to decide the direction of the neighbour
-            direction = self.get_neighbour_direction(coordinates)
-            self.neighbour_routers[direction] = router
 
     def get_busy_index(self,channel):
         """
@@ -57,7 +49,7 @@ class CARouter(BaseRouter):
 
         return busy_index
 
-    def arbiter(self,dest_coordinates):
+    def arbiter(self, dest_coordinates):
         """
         Algo: Congestion Aware router
         Details: Decide on whether to go X direction or Y direction based on 

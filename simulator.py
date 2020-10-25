@@ -43,22 +43,25 @@ def main():
         # create the router based on algo
         if algo_type == 4:
             router_list.append(CARouter(router_id, coordinates, rx_address))
+        elif (algo_type == 3):  # future use
+            router_list.append(Router(router_id, coordinates, rx_address))
+        elif (algo_type == 2):  # future use
+            router_list.append(Router(router_id, coordinates, rx_address))
+        elif (algo_type == 1):  # future use
+            router_list.append(Router(router_id, coordinates, rx_address))
         else:
             router_list.append(Router(router_id, coordinates, rx_address))
-        router_list[router_id].set_neighbours(neighbours_coordinates, neighbours_id)
 
-    # set the neighbour info necessary for algo 4
-    if algo_type == 4:
-        # This can only be done after all the routers are initiated
-        for router_id in range(number_of_routers):
-            # get the parameters
-            coordinates = noc_map_nodes[router_id]
-            neighbours_coordinates = list(noc_map.adj[coordinates])
-            neighbours_id = coordinates_2_id_list(neighbours_coordinates, m, n)
-            neighbour_routers = [
-                router_list[neighbour_id] for neighbour_id in neighbours_id
-            ]
-            router_list[router_id].set_neighbour_routers(neighbour_routers)
+    # This can only be done after all the routers are initiated
+    for router_id in range(number_of_routers):
+        # get the parameters
+        coordinates = noc_map_nodes[router_id]
+        neighbours_coordinates = list(noc_map.adj[coordinates])
+        neighbours_id = coordinates_2_id_list(neighbours_coordinates, m, n)
+        neighbour_routers = [
+            router_list[neighbour_id] for neighbour_id in neighbours_id
+        ]
+        router_list[router_id].setup_router(neighbour_routers)
 
     # init the packet generator
     generator0 = Generator(m, n)
@@ -71,6 +74,7 @@ def main():
     des_point = [2,2]
     ini_point = [0,0]
     pk0 = StatPacket(source_id,des_point,ini_point, current_clock_cycle)
+    pk1 = StatPacket(6,[0,2],[2,0], current_clock_cycle)
 
     # run the simulation
 
@@ -83,6 +87,7 @@ def main():
             #     router_list[packet.source_id].packet_in(packet, 0)
             packet = generator0.generate_single(current_clock_cycle) # for debugging
             router_list[pk0.source_id].packet_in(pk0, 0)  #for debugging
+            router_list[pk1.source_id].packet_in(pk1, 0)
 
         empty_flag = True
 
