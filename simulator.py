@@ -82,7 +82,7 @@ def main():
     # run the simulation
 
     # number of cycles to simulate for single packet testing
-    for current_clock_cycle in range(number_of_routers * 3):
+    for current_clock_cycle in range(number_of_routers * 5):
         """ set up the testing packets in first cycle """
         if current_clock_cycle == 0:
             # packets = generator1.generate_list(current_clock_cycle)

@@ -67,10 +67,6 @@ class ELRARouter(BaseRouter):
 
     ### router functions ###
 
-    def send_controller_pre(self, current_clock_cycle):
-        """ serve the current port and check if dest router free """
-        return super().send_controller_pre(current_clock_cycle)
-
     def prepare_next_cycle(self):
         """ overload BaseRouter's function """
         # update grant and wait status, special for ELRA router
@@ -81,7 +77,7 @@ class ELRARouter(BaseRouter):
     def scheduler(self):
         """
         Func: determine which port to serve
-        algo: Round Robin(special)
+        algo: Round Robin(on group) + Priority (weight per port)
         """
         # select the group by RR
         self.current_serving_group = (self.current_serving_group + 1) % 2

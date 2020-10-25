@@ -1,7 +1,7 @@
 """
 Module: BaseRouter
 Desp:   Basic XY 2d mesh router for baseline testing
-version: 0.1.0
+version: 0.2.1
 
 requirements: receiver.py
 
