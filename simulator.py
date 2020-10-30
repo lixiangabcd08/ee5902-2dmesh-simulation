@@ -10,6 +10,8 @@ from receiver import PacketReceiver as rx
 from router import BaseRouter as Router
 from elra_router import ELRARouter
 from ca_router import CARouter
+from a_router import ARouter
+
 from packet import BasePacket
 from packet import StatPacket
 from packet_generator import Generator
@@ -46,10 +48,10 @@ def main():
         # create the router based on algo
         if algo_type == 4:
             router_list.append(CARouter(router_id, coordinates, rx_address))
-        elif (algo_type == 3):  # future use
+        elif (algo_type == 3):  
             router_list.append(ELRARouter(router_id, coordinates, rx_address))
-        elif (algo_type == 2):  # future use
-            router_list.append(Router(router_id, coordinates, rx_address))
+        elif (algo_type == 2): 
+            router_list.append(ARouter(router_id, coordinates, rx_address))
         elif (algo_type == 1):  # future use
             router_list.append(Router(router_id, coordinates, rx_address))
         else:
