@@ -21,7 +21,7 @@ class StatPacket(BasePacket):
         self, source_id, dest_coordinates, current_coordinates, start_clock_cycle
     ):
         super().__init__(source_id, dest_coordinates, current_coordinates)
-        self.path_trace = [source_id]
+        self.path_trace = []
         self.clock_cycle_taken = 0
         self.start_clock_cycle = start_clock_cycle
 

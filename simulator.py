@@ -11,6 +11,7 @@ from router import BaseRouter as Router
 from elra_router import ELRARouter
 from ca_router import CARouter
 from a_router import ARouter
+from modxy_router import modXYRouter
 
 from packet import BasePacket
 from packet import StatPacket
@@ -52,8 +53,8 @@ def main():
             router_list.append(ELRARouter(router_id, coordinates, rx_address))
         elif (algo_type == 2): 
             router_list.append(ARouter(router_id, coordinates, rx_address))
-        elif (algo_type == 1):  # future use
-            router_list.append(Router(router_id, coordinates, rx_address))
+        elif (algo_type == 1):
+            router_list.append(modXYRouter(router_id, coordinates, rx_address))
         else:
             router_list.append(Router(router_id, coordinates, rx_address))
 
@@ -79,7 +80,7 @@ def main():
     des_point = [2,2]
     ini_point = [0,0]
     pk0 = StatPacket(source_id,des_point,ini_point, current_clock_cycle)
-    pk1 = StatPacket(6,[0,2],[2,0], current_clock_cycle)
+    pk1 = StatPacket(6,[0,2],[2,0], current_clock_cycle)  # 6-2
 
     # run the simulation
 
@@ -94,6 +95,13 @@ def main():
             router_list[pk0.source_id].packet_in(pk0, 0)  #for debugging
             router_list[pk1.source_id].packet_in(pk1, 0)
 
+        # if (current_clock_cycle < 3):  # for stress testing, can remove
+        #     pk2 = StatPacket(2,[2,2],[0,2], current_clock_cycle)  # 2-8
+        #     pk3 = StatPacket(5,[2,2],[1,2], current_clock_cycle)  # 5-8
+        #     pk4 = StatPacket(4,[2,2],[1,1], current_clock_cycle)  # 4-8
+        #     router_list[pk2.source_id].packet_in(pk2, 0)
+        #     router_list[pk3.source_id].packet_in(pk3, 0)
+        #     router_list[pk4.source_id].packet_in(pk4, 0)
         empty_flag = True
 
         """ This is to run the routers for 1 cycle to send out pkt """

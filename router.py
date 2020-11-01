@@ -1,7 +1,7 @@
 """
 Module: BaseRouter
 Desp:   Basic XY 2d mesh router for baseline testing
-version: 0.2.2
+version: 0.2.4
 
 requirements: receiver.py
 
@@ -16,6 +16,8 @@ Changelog:  0.0.1 - single buffer router (software)
             0.2.1 - bug fix on buffer_full, not enough status to indicate when
                     pkt sent but buffer has 1 empty space. Added pkt_sent
             0.2.2 - integrate the send_controller to simply top operation
+            0.2.3 - bug fix, scheduler serving unconnected ports 
+            0.2.4 - unlimited buffer for input local port
 """
 
 
@@ -36,7 +38,7 @@ class BaseRouter:
         self.pkt_sent = [False, False, False, False, False]  # for buffer_full
         self.buffer_size = 4
         self.local_storage = rx_address
-        self.current_serving_port = 4  # so first cycle will server port 0
+        self.current_serving_port = 0  # so first cycle will server port 0
 
     ### setup the router ###
 
@@ -66,9 +68,13 @@ class BaseRouter:
 
     def packet_in(self, packet, port):
         """ store to input buffer """
-        if self.buffer_full(port):
+        if port == 0:  # unlimited buffer for local port
+            packet.update_packet(self.id, self.coordinates)
+            self.buffer[port].append(packet)
+            return True
+        elif self.buffer_full(port):  # for other ports
             return False
-        else:
+        else:  # not full
             # update packet information before storing
             packet.update_packet(self.id, self.coordinates)
             self.buffer[port].append(packet)
@@ -81,7 +87,7 @@ class BaseRouter:
 
     def buffer_packet_peek(self, port):
         """ retrive the output buffer data """
-        if (self.pkt_available_to_send_now[port]):
+        if self.pkt_available_to_send_now[port]:
             packet = self.buffer[port][0]  # always the first pkt
             return packet
         else:
@@ -89,7 +95,7 @@ class BaseRouter:
 
     def buffer_packet_remove(self, port):
         """ remove the output buffer data """
-        if (not self.buffer_empty(port)):
+        if not self.buffer_empty(port):
             # remove the packet
             self.buffer[port].pop(0)
         else:
@@ -108,13 +114,10 @@ class BaseRouter:
     def buffer_full(self, port):
         """ for current cycle, like hardware FIFO status """
         # no packet sent, but FIFO still full
-        if len(self.buffer[port]) == self.buffer_size:
+        if len(self.buffer[port]) >= self.buffer_size:
             return True
         # packet was sent, but hardware wise buffer still considered full
-        elif (
-            len(self.buffer[port]) == self.buffer_size-1
-            and self.pkt_sent[port]
-        ):
+        elif len(self.buffer[port]) == self.buffer_size - 1 and self.pkt_sent[port]:
             return True
         else:
             return False
@@ -133,7 +136,7 @@ class BaseRouter:
         """
         direction, packet = self.send_controller_pre(current_clock_cycle)
         if direction is not None:  # if there is packet
-            print(self.id, direction)
+            # print("router",self.id, direction)  # debugging
             status = self.neighbour_routers[direction].receive_check(
                 packet, self.id
             )  # try sending
@@ -186,8 +189,19 @@ class BaseRouter:
         Func: determine which port to serve
         algo: Round Robin
         """
-        self.current_serving_port = (self.current_serving_port + 1) % 5
-        return self.current_serving_port
+        current_port = self.current_serving_port
+
+        # loop through the list to check next present port
+        for next_port in range(current_port + 1, len(self.neighbours_id)):
+            neighbour_router = self.neighbours_id[next_port]
+            if neighbour_router is not None:
+                self.current_serving_port = next_port
+                return next_port
+
+        # reached the end of the list, has to be back to 0
+        next_port = 0
+        self.current_serving_port = next_port
+        return next_port
 
     def arbiter(self, dest_coordinates):
         """
