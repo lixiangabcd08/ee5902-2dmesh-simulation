@@ -14,3 +14,6 @@ def coordinates_2_id_list(coordinates_list, m, n):
 
     # id_list.sort()  # might not need it
     return id_list
+
+def id_2_coordinates(id, m, n):
+    return (int(id/m), id%m)

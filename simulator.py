@@ -25,6 +25,7 @@ def main():
     m, n = args.m, args.n
     num_of_testing_pkts = args.num_of_testing_pkts
     algo_type = args.algo_type
+    testing_mode = args.testing_mode
     print(args)
     # create the network mapping
     noc_map = nx.grid_2d_graph(m, n)
@@ -70,30 +71,32 @@ def main():
         router_list[router_id].setup_router(neighbour_routers)
 
     # init the packet generator
-    generator0 = Generator(m, n)
-    generator1 = RandomGenerator(m, n, max_pkt=num_of_testing_pkts)
-    generator2 = ConstGenerator(m, n, sir=10, max_pkt=50)
-
-    ### debug to input packet data
-    current_clock_cycle = 0
-    source_id = 0
-    des_point = [2,2]
-    ini_point = [0,0]
-    pk0 = StatPacket(source_id,des_point,ini_point, current_clock_cycle)
-    pk1 = StatPacket(6,[0,2],[2,0], current_clock_cycle)  # 6-2
+    if testing_mode == 0:
+        generator = Generator(m, n)
+    elif testing_mode == 1:
+        generator = RandomGenerator(m, n, rate=10) # greate the rate, less likely packets are generated
+    elif testing_mode == 2:
+        generator= ConstGenerator(m, n, sir=10) # greate the sir, less likely packets are generated
 
     # run the simulation
 
     # number of cycles to simulate for single packet testing
     for current_clock_cycle in range(number_of_routers * 5):
-        """ set up the testing packets in first cycle """
-        if current_clock_cycle == 0:
-            # packets = generator1.generate_list(current_clock_cycle)
-            # for packet in packets:
-            #     router_list[packet.source_id].packet_in(packet, 0)
-            packet = generator0.generate_single(current_clock_cycle) # for debugging
-            router_list[pk0.source_id].packet_in(pk0, 0)  #for debugging
-            router_list[pk1.source_id].packet_in(pk1, 0)
+
+        ### Generate packets
+        if testing_mode == 0:
+            if current_clock_cycle == 0:
+                """ set up the testing packets in first cycle """
+                pk0 = generator.generate_single(0,(2,2),(0,0),current_clock_cycle)
+                router_list[pk0.source_id].packet_in(pk0, 0)  #for debugging
+                pk1 = generator.generate_single(6,(0,2),(2,0),current_clock_cycle)
+                router_list[pk1.source_id].packet_in(pk1, 0)
+        else:
+            for router in router_list:
+                # each router have possibility to initiate packet
+                pk = generator.get_packet(router.id,current_clock_cycle)
+                if pk is not None: # no packet from this router
+                    router.packet_in(pk, 0)
 
         # if (current_clock_cycle < 3):  # for stress testing, can remove
         #     pk2 = StatPacket(2,[2,2],[0,2], current_clock_cycle)  # 2-8
@@ -160,7 +163,7 @@ if __name__ == "__main__":
         "--testing_mode",
         type=int,
         default="0",
-        help="0->single pkt test, 1->multiple pkt test",
+        help="0->fixed pkt test, 1->random pkt test 2->fixed sir test",
     )
     start_time = time.time()
     main()
