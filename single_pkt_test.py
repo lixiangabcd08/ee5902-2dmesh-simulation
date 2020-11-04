@@ -1,5 +1,6 @@
 import argparse
 import time
+import numpy as np
 
 from network_map import coordinates_2_id
 from network_map import coordinates_2_id_list
@@ -18,6 +19,8 @@ from packet import StatPacket
 from packet_generator import Generator
 from packet_generator import RandomGenerator
 from packet_generator import ConstGenerator
+
+from heatmap import heatmap_display
 
 
 def sub_simulator(args, noc_map, noc_map_nodes):
@@ -124,3 +127,15 @@ def sub_simulator(args, noc_map, noc_map_nodes):
     for router_id in range(number_of_routers):
         receiver_list[router_id].print_stat()
         receiver_list[router_id].print_packet_stat()
+    
+    # heatmap
+    noc_heatmap = np.zeros(number_of_routers, dtype=int)
+    for router_id in range(number_of_routers):
+        router_heatmap = (receiver_list[router_id].heatmap_collection())
+        # add the counts to the overall heatmap
+        # if router_heatmap is not None:
+        for router in router_heatmap:
+            noc_heatmap[router] += router_heatmap[router]
+
+    noc_heatmap = np.reshape(noc_heatmap, (m,n))
+    heatmap_display(noc_heatmap)

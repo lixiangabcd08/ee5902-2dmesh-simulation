@@ -68,3 +68,17 @@ class PacketReceiver(BaseReceiver):
             print("average clock cycles = %.2f" % np.average(clocks_taken))
             for source in clock_taken_by_source:
                 print("average clock cycles from router %d = %.2f" % (source, np.average(clock_taken_by_source[source])))
+
+    def heatmap_collection(self):
+        heatmap = {}
+        if self.local_storage:
+            for pkt in self.local_storage:  # for every pkt
+                pkt.path_trace.pop(0)  # remove the source id
+                for router in pkt.path_trace:  # for every place it been to
+                    # increment heatmap
+                    try:
+                        current_val = heatmap[router]
+                        heatmap.update({router: (current_val + 1)})
+                    except KeyError:
+                        heatmap.update({router: 1})
+        return heatmap
