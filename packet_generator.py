@@ -55,9 +55,12 @@ class Generator():
         ini_coordinates = id_2_coordinates(source_id,self.m,self.n)
         ini_layer = self.get_layer_no(source_id)
         if ini_layer+1 < len(self.nodes_map): # if not the last layer
-            for node in self.nodes_map[ini_layer+1]: # dest must from the next layer
-                dest_coordinates = id_2_coordinates(node,self.m,self.n)
+            node_no = self.nodes_map[ini_layer+1][0]
+            last_node = self.nodes_map[ini_layer+1][1]
+            while node_no <= last_node: # dest must from the next layer
+                dest_coordinates = id_2_coordinates(node_no,self.m,self.n)
                 self.packets[source_id].append(StatPacket(source_id,dest_coordinates,ini_coordinates,current_clock_cycle))
+                node_no += 1
 
     def get_layer_no(self,node_id):
         for index,layer in enumerate(self.nodes_map):
