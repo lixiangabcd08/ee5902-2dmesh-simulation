@@ -1,10 +1,10 @@
-'''
+"""
 aim is to link the x,y to the id
-'''
+"""
 
 
 def coordinates_2_id(coordinates, m, n):
-    return coordinates[0]*m + coordinates[1]
+    return coordinates[0] * m + coordinates[1]
 
 
 def coordinates_2_id_list(coordinates_list, m, n):
@@ -15,5 +15,6 @@ def coordinates_2_id_list(coordinates_list, m, n):
     # id_list.sort()  # might not need it
     return id_list
 
+
 def id_2_coordinates(id, m, n):
-    return (int(id/m), id%m)
+    return (int(id / m), id % m)

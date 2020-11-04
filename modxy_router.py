@@ -1,11 +1,12 @@
 """
 Module: modifiedXY Router
 Desp: Modified X–Y routing for mesh topology based NoC router
-version: 0.0.1
+version: 0.0.2
 
 requirements: router.py
 
 Changelog:  0.0.1 - router
+            0.0.2 - updated external functions to check for side buffer also
 """
 from router import BaseRouter
 
@@ -245,3 +246,24 @@ class modXYRouter(BaseRouter):
 
         else:  # no data in all ports, stay the same
             return self.current_serving_port
+
+    ### external functions for simulator performance ###
+
+    def debug_empty_buffer(self):
+        """ for debugging """
+        super().debug_empty_buffer()
+        for port in range(len(self.side_buffer)):
+            status = self.side_buffer_empty_actual(port)
+            if status is False:
+                print("side_buffer", port, status)
+
+    def empty_buffers(self):
+        """
+        For: early program termination
+        Func: check if all buffer empty.  Return False for any filled buffer
+        """
+        for port in range(len(self.side_buffer)):
+            status = self.side_buffer_empty_actual(port)
+            if status is False:
+                return False
+        super().empty_buffers()
