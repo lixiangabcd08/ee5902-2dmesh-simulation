@@ -20,11 +20,10 @@ class BaseReceiver:
         self.number_of_packet_received += 1
 
     def print_stat(self):
-        if (self.number_of_packet_received > 0):
+        if self.number_of_packet_received > 0:
+            print("--------------------Router %d--------------------" % self.id)
             print(
-                "Router ",
-                self.id,
-                ": number_of_packet_received =",
+                "number_of_packet_received =",
                 self.number_of_packet_received,
             )
 
@@ -54,7 +53,9 @@ class PacketReceiver(BaseReceiver):
                     current_list.append(pkt.clock_cycle_taken)
                     clock_taken_by_source.update({pkt.source_id: current_list})
                 except KeyError:
-                    clock_taken_by_source.update({pkt.source_id: [pkt.clock_cycle_taken]})
+                    clock_taken_by_source.update(
+                        {pkt.source_id: [pkt.clock_cycle_taken]}
+                    )
                 print(
                     "Pkt source:",
                     pkt.source_id,
@@ -67,7 +68,10 @@ class PacketReceiver(BaseReceiver):
                 )
             print("average clock cycles = %.2f" % np.average(clocks_taken))
             for source in clock_taken_by_source:
-                print("average clock cycles from router %d = %.2f" % (source, np.average(clock_taken_by_source[source])))
+                print(
+                    "average clock cycles from router %d = %.2f"
+                    % (source, np.average(clock_taken_by_source[source]))
+                )
 
     def heatmap_collection(self):
         heatmap = {}

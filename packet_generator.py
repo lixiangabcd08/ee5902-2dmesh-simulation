@@ -2,6 +2,7 @@ from packet import StatPacket
 from network_map import coordinates_2_id, id_2_coordinates
 import random
 import math
+import numpy as np
 
 ### This generator generate random package
 class Generator():
@@ -27,7 +28,7 @@ class Generator():
                 end_node = start_node + math.ceil(layer_node_no/2) - 1
             self.nodes_map.append((start_node, end_node))
             start_node = end_node + 1 # start node for the next layer
-            layer_node_no = math.ceil(layer_node_no/2) # number of nodes in the next layer should be half of the one in the current layer
+            layer_node_no = math.ceil(int(layer_node_no/2)) # number of nodes in the next layer should be half of the one in the current layer
 
     # generate a single StatPacket packet according to the user input
     def generate_single(self, source_id, dest_coordinates, current_coordinates, current_clock_cycle):
@@ -46,7 +47,7 @@ class Generator():
 
     def get_packet(self,router_id,current_clock_cycle):
         if not self.packets:
-            self.generate_packets(router_id,current_clock_cycle)
+            self.generate_packets(router_id, current_clock_cycle)
         pkt = self.packets.pop(0)
         return pkt
 
@@ -62,7 +63,7 @@ class Generator():
                 dest_coordinates = id_2_coordinates(node_no,self.m,self.n)
                 node_packets.append(StatPacket(source_id,dest_coordinates,ini_coordinates,current_clock_cycle))
                 node_no += 1
-            self.packets[source_id] = node_packets
+            self.packets[source_id] += node_packets
 
     def get_layer_no(self,node_id):
         for index,layer in enumerate(self.nodes_map):
@@ -79,12 +80,11 @@ class RandomGenerator(Generator):
     # rate should be a value between -10 and 10
     def __init__(self, m, n, rate=5):
         super().__init__(m,n)
-        self.rate = rate/10
-        random.seed(1)
+        self.rate = rate
 
     def get_packet(self,router_id,current_clock_cycle):
         # Gaussian random values of average 0 and standard deviation of 1
-        if random.gauss(0,1) > self.rate: # if the random number is greater than the rate
+        if np.random.uniform(0,10) > self.rate: # if the random number is greater than the rate
             self.generate_packets(router_id,current_clock_cycle)
         if len(self.packets[router_id]) > 0: # has packet
             pkt = self.packets[router_id].pop(0)
