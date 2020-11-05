@@ -45,7 +45,7 @@ class Generator():
         source_id = coordinates_2_id(ini_point,self.m,self.n)
         return StatPacket(source_id,des_point,ini_point, current_clock_cycle)
 
-    def get_packet(self,router_id,current_clock_cycle):
+    def get_packet(self,router_id,current_clock_cycle,is_empty):
         if not self.packets:
             self.generate_packets(router_id, current_clock_cycle)
         pkt = self.packets.pop(0)
@@ -82,11 +82,11 @@ class RandomGenerator(Generator):
         super().__init__(m,n)
         self.rate = rate
 
-    def get_packet(self,router_id,current_clock_cycle):
+    def get_packet(self,router_id,current_clock_cycle, is_empty):
         # Gaussian random values of average 0 and standard deviation of 1
         if np.random.uniform(0,10) > self.rate: # if the random number is greater than the rate
             self.generate_packets(router_id,current_clock_cycle)
-        if len(self.packets[router_id]) > 0: # has packet
+        if len(self.packets[router_id]) > 0 and is_empty: # has packet
             pkt = self.packets[router_id].pop(0)
         else:
             pkt = None
@@ -104,11 +104,11 @@ class ConstGenerator(Generator):
         self.sir = sir
 
     # return BasePacket
-    def get_packet(self, router_id, current_clock_cycle):
+    def get_packet(self, router_id, current_clock_cycle, is_empty):
         # if current_clock_cycle is divisible of sir
         if not current_clock_cycle%self.sir:
             self.generate_packets(router_id,current_clock_cycle)
-        if len(self.packets[router_id]) > 0: # has packet
+        if len(self.packets[router_id]) > 0 and is_empty: # has packet
             pkt = self.packets[router_id].pop(0)
         else:
             pkt = None

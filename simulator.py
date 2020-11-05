@@ -94,7 +94,7 @@ def main():
         else:
             for router in router_list:
                 # each router have possibility to initiate packet
-                pk = generator.get_packet(router.id,current_clock_cycle)
+                pk = generator.get_packet(router.id,current_clock_cycle,router.buffer_empty_actual(0))
                 if pk is not None: # no packet from this router
                     router.packet_in(pk, 0)
 
