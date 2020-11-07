@@ -10,7 +10,33 @@ class Generator():
         self.m = m
         self.n = n
     
-        # store packets for send for each node
+    # generate a single StatPacket packet according to the user input
+    def generate_single(self, source_id, dest_coordinates, current_coordinates, current_clock_cycle):
+        return StatPacket(source_id,dest_coordinates,current_coordinates,current_clock_cycle)
+
+    # generate a random single StatPacket packet, ignore mapping
+    def generate_random_single(self, current_clock_cycle):
+        has_two_points = False
+        while not has_two_points:
+            ini_point = self.gen_random_point()
+            des_point = self.gen_random_point()
+            if ini_point != des_point: # make sure the two points are not identical
+                has_two_points = True
+        source_id = coordinates_2_id(ini_point,self.m,self.n)
+        return StatPacket(source_id,des_point,ini_point, current_clock_cycle)
+
+    def gen_random_point(self):
+        coordinate_x = random.randint(0,self.m-1)
+        coordinate_y = random.randint(0,self.n-1)
+        return (coordinate_x, coordinate_y)
+
+
+class RandomGenerator(Generator):
+    # rate should be a value between -10 and 10
+    def __init__(self, m, n, rate=5):
+        super().__init__(m,n)
+        self.rate = rate
+                # store packets for send for each node
         self.packets = [[]] * m * n
 
         # create the map
@@ -30,26 +56,10 @@ class Generator():
             start_node = end_node + 1 # start node for the next layer
             layer_node_no = math.ceil(int(layer_node_no/2)) # number of nodes in the next layer should be half of the one in the current layer
 
-    # generate a single StatPacket packet according to the user input
-    def generate_single(self, source_id, dest_coordinates, current_coordinates, current_clock_cycle):
-        return StatPacket(source_id,dest_coordinates,current_coordinates,current_clock_cycle)
-
-    # generate a random single StatPacket packet, ignore mapping
-    def generate_random_single(self, current_clock_cycle):
-        has_two_points = False
-        while not has_two_points:
-            ini_point = self.gen_random_point()
-            des_point = self.gen_random_point()
-            if ini_point != des_point: # make sure the two points are not identical
-                has_two_points = True
-        source_id = coordinates_2_id(ini_point,self.m,self.n)
-        return StatPacket(source_id,des_point,ini_point, current_clock_cycle)
-
-    def get_packet(self,router_id,current_clock_cycle,is_empty):
-        if not self.packets:
-            self.generate_packets(router_id, current_clock_cycle)
-        pkt = self.packets.pop(0)
-        return pkt
+    def get_layer_no(self,node_id):
+        for index,layer in enumerate(self.nodes_map):
+            if layer[1] >= node_id:
+                return index
 
     # generate a list of packet which follows the mapping guideline
     def generate_packets(self, source_id, current_clock_cycle):
@@ -65,22 +75,6 @@ class Generator():
                 node_no += 1
             self.packets[source_id] += node_packets
 
-    def get_layer_no(self,node_id):
-        for index,layer in enumerate(self.nodes_map):
-            if layer[1] >= node_id:
-                return index
-
-    def gen_random_point(self):
-        coordinate_x = random.randint(0,self.m-1)
-        coordinate_y = random.randint(0,self.n-1)
-        return (coordinate_x, coordinate_y)
-
-
-class RandomGenerator(Generator):
-    # rate should be a value between -10 and 10
-    def __init__(self, m, n, rate=5):
-        super().__init__(m,n)
-        self.rate = rate
 
     def get_packet(self,router_id,current_clock_cycle, is_empty):
         # Gaussian random values of average 0 and standard deviation of 1
@@ -92,24 +86,16 @@ class RandomGenerator(Generator):
             pkt = None
         return pkt
 
-    def generate_list(self,current_clock_cycle):
-        random_list = []
-        random_list.append(self.generate_random_single(current_clock_cycle))
-        return random_list
-
-
+# congestion generator
 class ConstGenerator(Generator):
-    def __init__(self, m, n, sir=20):
+    def __init__(self, m, n):
         super().__init__(m,n)
-        self.sir = sir
+        self.dest_coordinates = (m-1, n-1) # send to the last node
 
-    # return BasePacket
-    def get_packet(self, router_id, current_clock_cycle, is_empty):
-        # if current_clock_cycle is divisible of sir
-        if not current_clock_cycle%self.sir:
-            self.generate_packets(router_id,current_clock_cycle)
-        if len(self.packets[router_id]) > 0 and is_empty: # has packet
-            pkt = self.packets[router_id].pop(0)
+    def get_packet(self,router_id,current_clock_cycle, is_empty):
+        if int(router_id/self.n) == router_id%self.n and router_id != self.m*self.n-1: # node on diagonal and not the last node
+            ini_coordinates = id_2_coordinates(router_id,self.m,self.n)
+            pkt = StatPacket(router_id,self.dest_coordinates,ini_coordinates,current_clock_cycle)
         else:
             pkt = None
         return pkt

@@ -74,9 +74,9 @@ def main():
     if testing_mode == 0:
         generator = Generator(m, n)
     elif testing_mode == 1:
-        generator = RandomGenerator(m, n, rate=10) # greate the rate, less likely packets are generated
+        generator = RandomGenerator(m, n, rate=5) # greate the rate, less likely packets are generated
     elif testing_mode == 2:
-        generator= ConstGenerator(m, n, sir=10) # greate the sir, less likely packets are generated
+        generator= ConstGenerator(m, n) # greate the sir, less likely packets are generated
 
     # run the simulation
 
