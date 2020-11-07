@@ -69,8 +69,12 @@ class PacketReceiver(BaseReceiver):
             print("average clock cycles = %.2f" % np.average(clocks_taken))
             for source in clock_taken_by_source:
                 print(
-                    "average clock cycles from router %d = %.2f"
-                    % (source, np.average(clock_taken_by_source[source]))
+                    "average clock cycles from router %d = %.2f in %d packets"
+                    % (
+                        source,
+                        np.average(clock_taken_by_source[source]),
+                        len(clock_taken_by_source[source]),
+                    )
                 )
 
     def heatmap_collection(self):

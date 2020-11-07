@@ -38,7 +38,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--algo_type", type=int, default="0", help="type of routers to test"
     )
-    parser.add_argument("--cycle_limit", type=int, default="100", help="cycles limit")
+    parser.add_argument("--cycle_limit", type=int, default="200", help="cycles limit")
+    parser.add_argument(
+        "--load_cycles",
+        type=int,
+        default="20",
+        help="cycles to inject packets in test mode 2",
+    )
     parser.add_argument(
         "--target_rate",
         type=float,
@@ -49,7 +55,7 @@ if __name__ == "__main__":
         "--test_mode",
         type=int,
         default="0",
-        help="0->single pkt test, 1->multiple pkt test",
+        help="0->single pkt test, 1->random pkt test, 2->congestion pkt test",
     )
     args = parser.parse_args()
 

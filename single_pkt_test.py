@@ -25,7 +25,6 @@ from heatmap import heatmap_display
 
 def sub_simulator(args, noc_map, noc_map_nodes):
     m, n = args.m, args.n
-    num_of_testing_pkts = args.num_of_testing_pkts
     algo_type = args.algo_type
     number_of_routers = m * n
     router_list = []

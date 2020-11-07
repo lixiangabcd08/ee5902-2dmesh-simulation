@@ -1,11 +1,12 @@
 """
 Module: A Router
 Desp: Adaptive Routing Strategy
-version: 0.0.1
+version: 0.0.2
 
 requirements: router.py
 
 Changelog:  0.0.1 - router
+            0.0.2 - fixed the CCD checking
 """
 from router import BaseRouter
 
@@ -14,9 +15,25 @@ class ARouter(BaseRouter):
     def __init__(self, id, coordinates, rx_address):
         super().__init__(id, coordinates, rx_address)
 
-    def direction_transform_algo(self,direction):
+    ### buffer status ###
+
+    def buffer_half_full(self, port):
+        half_full  = int(self.buffer_size/2)
+        # Case when pkt sent, the actual buffer size becomes (Threshold_v-1)
+        if (len(self.buffer[port]) == half_full - 1) and self.pkt_sent[port]:
+            return True
+
+        # For cases when buffer_size is more than threshold, even before/after sent
+        elif len(self.buffer[port]) >= half_full:
+            return True
+        else:
+            return False
+
+    ### router functions ###
+
+    def direction_transform_algo(self, direction):
         """
-        Trandform the direction used in the simulation to the direction system
+        Transform the direction used in the simulation to the direction system
         used in the paper.
         """
         algo_direction = None
@@ -25,14 +42,14 @@ class ARouter(BaseRouter):
         elif direction == self.EAST:
             algo_direction = 1
         elif direction == self.SOUTH:
-            algo_direction = 2
-        else:
             algo_direction = 3
+        else:  # WEST
+            algo_direction = 2
         return algo_direction
 
-    def direction_transform_original(self,direction):
+    def direction_transform_original(self, direction):
         """
-        Trandform the direction used in the paper to the direction system
+        Transform the direction used in the paper to the direction system
         used in the simulation.
         """
         algo_direction = None
@@ -41,44 +58,92 @@ class ARouter(BaseRouter):
         elif direction == 1:
             algo_direction = self.EAST
         elif direction == 2:
-            algo_direction = self.SOUTH
-        else:
             algo_direction = self.WEST
+        else:  # 3
+            algo_direction = self.SOUTH
         return algo_direction
 
-    def get_busy_index(self,direction):
+    def opposite_port_original(self,direction):
         """
-        Get whether this direction is busy or not
+        retrive the opposite port id, orignal port encoding.
+        Use to reflect the view of the incoming port in get_x_index
         """
-        if len(self.buffer[direction]) >= (self.buffer_size/2):
+        port = None
+        if direction == 1:
+            port = self.SOUTH
+        elif direction == 2:
+            port = self.WEST
+        elif direction == 3:
+            port = self.NORTH
+        else:  # 4
+            port = self.EAST
+        return port
+
+    def get_busy_loop(self,direction):
+        """
+        Get whether this direction is busy or not, OR operation for CCD in that
+        direction
+        Recursive function
+        """
+        is_busy = False
+
+        if self.buffer_half_full(self.opposite_port_original(direction)):
             is_busy = True
+            return is_busy  # can early terminate since OR operation
         else:
-            is_busy = False
+            # continue to next router
+            neighbour_router = self.neighbour_routers[direction]
+            if neighbour_router is not None:
+                return neighbour_router.get_busy_loop(direction)
+            else:  # the last module on the line
+                return is_busy
+
+    def get_busy_index(self, direction):
+        """
+        Get whether this direction is busy or not, OR operation for CCD in that
+        direction
+        Starting func that calls Recursive function, to skip the first router
+        """
         neighbour_router = self.neighbour_routers[direction]
         if neighbour_router is not None:
-            return is_busy | neighbour_router.get_busy_index(direction)
-        else: # the last module on the line
-            return is_busy
+            return neighbour_router.get_busy_loop(direction)
+        else:  # should not be sending to unconnected port
+            return True
 
-    def get_congested_index(self, direction):
+    def get_congested_loop(self, direction):
         """
-        Get whether this direction is congested or not
+        Get whether this direction is congested or not, AND operation for CCD in
+        that direction
+        Recursive function
         """
-        if len(self.buffer[direction]) == self.buffer_size:
+        if (self.buffer_full(self.opposite_port_original(direction))):
             is_congested = True
         else:
             is_congested = False
         neighbour_router = self.neighbour_routers[direction]
         if neighbour_router is not None:
-            return is_congested & neighbour_router.get_congested_index(direction)
+            return is_congested & neighbour_router.get_congested_loop(direction)
         else: # the last module on the line
             return is_congested
+
+    def get_congested_index(self, direction):
+        """
+        Get whether this direction is congested or not, AND operation for CCD in
+        that direction
+        Starting func that calls Recursive function, to skip the first router
+        """
+        neighbour_router = self.neighbour_routers[direction]
+        if neighbour_router is not None:
+            return neighbour_router.get_congested_loop(direction)
+        else:  # should not be sending to unconnected port
+            return True
 
     def arbiter(self, dest_coordinates):
         """
         Algo: Adaptive Routing
         """
         direction = super().arbiter(dest_coordinates)
+        direction_old = direction
         if direction != self.SELF:
             # change the old direction index to the direction in the paper
             algo_direction = self.direction_transform_algo(direction)
@@ -93,6 +158,11 @@ class ARouter(BaseRouter):
             result = [algo_direction,s7][int(self.get_multiplexer(algo_direction, 'congested'))]
             # transfer back to the original direction system
             direction = self.direction_transform_original(result)
+
+            # special check by us to prevent packet sending to unconnected port
+            if(self.neighbours_id[direction] is None):
+                direction = direction_old
+
         return direction
 
     def inverse(self, a):
@@ -112,6 +182,8 @@ class ARouter(BaseRouter):
         if line == 'busy':
             return self.get_busy_index(direction)
         else:
+            # if(self.get_congested_index(direction)):
+            #     print("yes")
             return self.get_congested_index(direction)
 
     def scheduler(self):

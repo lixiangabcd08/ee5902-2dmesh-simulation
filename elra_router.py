@@ -56,7 +56,7 @@ class ELRARouter(BaseRouter):
     ### buffer status ###
     def buffer_over_threshold_v(self, port):
         # Case when pkt sent, the actual buffer size becomes (Threshold_v-1)
-        if len(self.buffer[port]) == self.Threshold_v - 1 and self.pkt_sent[port]:
+        if (len(self.buffer[port]) == self.Threshold_v - 1) and self.pkt_sent[port]:
             return True
 
         # For cases when buffer_size is more than threshold, even before/after sent

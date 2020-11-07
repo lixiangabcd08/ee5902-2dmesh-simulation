@@ -46,8 +46,7 @@ class modXYRouter(BaseRouter):
         if self.side_buffer_full(port):
             return False
         else:  # not full
-            # update packet information before storing
-            packet.update_packet(self.id, self.coordinates)
+            # no need to update hte packet
             self.side_buffer[port].append(packet)
             return True
 
@@ -266,4 +265,15 @@ class modXYRouter(BaseRouter):
             status = self.side_buffer_empty_actual(port)
             if status is False:
                 return False
-        super().empty_buffers()
+        return super().empty_buffers()
+
+    def empty_side_buffers(self):
+        """
+        For: early program termination
+        Func: check if all buffer empty.  Return False for any filled buffer
+        """
+        for port in range(len(self.side_buffer)):
+            status = self.side_buffer_empty_actual(port)
+            if status is False:
+                return False
+        return True

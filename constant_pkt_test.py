@@ -25,7 +25,7 @@ def sub_simulator(args, noc_map, noc_map_nodes):
     m, n = args.m, args.n
     algo_type = args.algo_type
     cycle_limit = args.cycle_limit
-    target_rate = args.target_rate
+    load_cycles = args.load_cycles
     algo_type = args.algo_type
     number_of_routers = m * n
     router_list = []
@@ -67,18 +67,19 @@ def sub_simulator(args, noc_map, noc_map_nodes):
         router_list[router_id].setup_router(neighbour_routers)
 
     # init the packet generator
-    generator= ConstGenerator(m, n, sir=target_rate) # greate the sir, less likely packets are generated
+    generator= ConstGenerator(m, n) # greate the sir, less likely packets are generated
 
     # run the simulation
 
     # number of cycles to simulate for single packet testing
     for current_clock_cycle in range(cycle_limit):
-        """ set up the testing packets in first cycle """
-        for router in router_list:
-            # each router have possibility to initiate packet
-            pk = generator.get_packet(router.id,current_clock_cycle,router.buffer_empty_actual(0))
-            if pk is not None: # no packet from this router
-                router.packet_in(pk, 0)
+        """ set up the testing packets in load_cycles """
+        if current_clock_cycle < load_cycles:
+            for router in router_list:
+                # each router have possibility to initiate packet
+                pk = generator.get_packet(router.id,current_clock_cycle,router.buffer_empty_actual(0))
+                if pk is not None: # no packet from this router
+                    router.packet_in(pk, 0)
 
         empty_flag = True
 
