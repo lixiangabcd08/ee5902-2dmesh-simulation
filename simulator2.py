@@ -1,3 +1,16 @@
+"""
+Module: simulator2
+Desp:   top wrapper for 2D mesh NoC simulator
+version: 0.0.1
+
+requirements:   network_map.py,
+                single_pkt_test.py,
+                random_pkt_test.py
+                constant_pkt_test.py
+                networkx
+
+Changelog:  0.0.1 - initial release
+"""
 import argparse
 import networkx as nx
 import time
@@ -11,17 +24,24 @@ import random_pkt_test as RPT
 import constant_pkt_test as CPT
 
 
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    if v.lower() in ("yes", "true", "t", "y", "1"):
+        return True
+    elif v.lower() in ("no", "false", "f", "n", "0"):
+        return False
+    else:
+        return v
+
+
 def main(args):
 
     m, n = args.m, args.n
-    # num_of_testing_pkts = args.num_of_testing_pkts
-    # algo_type = args.algo_type
     print(args)
     # create the network mapping
     noc_map = nx.grid_2d_graph(m, n)  # (rows, columns)
     noc_map_nodes = list(noc_map.nodes)
-    # print(list(noc_map.nodes))  # debug
-    # print(list(noc_map.edges))  # debug
 
     if args.test_mode == 0:
         SPT.sub_simulator(args, noc_map, noc_map_nodes)
@@ -47,7 +67,7 @@ if __name__ == "__main__":
         4:CA router
         5:all routers""",
     )
-    parser.add_argument("--cycle_limit", type=int, default="200", help="cycles limit")
+    parser.add_argument("--cycle_limit", type=int, default="300", help="cycles limit")
     parser.add_argument(
         "--load_cycles",
         type=int,
@@ -65,6 +85,28 @@ if __name__ == "__main__":
         type=int,
         default="0",
         help="0->single pkt test, 1->random pkt test, 2->congestion pkt test",
+    )
+    parser.add_argument(
+        "--verbose",
+        type=int,
+        default="0",
+        help="""
+        0->only num of pkt received per router
+        1-> L0 + average clk cycles
+        2-> L1 + all packet information
+        3-> L2 + heatmap""",
+    )
+    parser.add_argument(
+        "--print_output",
+        type=str2bool,
+        default=True,
+        help="Whether to print simulator output in terminal",
+    )
+    parser.add_argument(
+        "--sim_data_path",
+        type=str,
+        default="./sim_data.txt",
+        help="path to save the simulation data",
     )
     args = parser.parse_args()
 

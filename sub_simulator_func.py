@@ -57,3 +57,44 @@ def create_router_list(args, noc_map, noc_map_nodes):
         router_list[router_id].setup_router(neighbour_routers)
 
     return router_list, receiver_list
+
+
+def stats_collection(receiver_list, fout, args):
+    m, n = args.m, args.n
+    verbose = args.verbose
+    print_output = args.print_output
+    noc_heatmap = None
+    total_pkt_count(receiver_list, fout)
+
+    # for rest of the stats
+    for receiver in receiver_list:
+        receiver.print_stat(verbose, fout, print_output)
+
+    if verbose == 3:
+        noc_heatmap = heatmap_save(receiver_list, m, n)
+
+    return noc_heatmap
+
+
+def total_pkt_count(receiver_list, fout):
+    count = 0
+    for receiver in receiver_list:
+        count += receiver.number_of_packet_received
+    string = "Total number of pkt reached their destination = %d\n" % count
+    fout.write(string)
+    print(string, end="")
+
+
+def heatmap_save(receiver_list, m, n):
+    # heatmap save from the stats in receivers
+    number_of_routers = m * n
+    noc_heatmap = np.zeros(number_of_routers, dtype=int)
+    for receiver in receiver_list:
+        router_heatmap = receiver.heatmap_collection()
+        # add the counts to the overall heatmap
+        # if router_heatmap is not None:
+        for router in router_heatmap:
+            noc_heatmap[router] += router_heatmap[router]
+
+    noc_heatmap = np.reshape(noc_heatmap, (m, n))
+    return noc_heatmap

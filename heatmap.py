@@ -7,22 +7,23 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 
+
 def heatmap_multiple_display(heatmap_list):
 
     fig = plt.figure()
-    ax=[None,None,None,None,None]
-    ax[0] = fig.add_subplot(2, 3, 1) # row, column, position
+    ax = [None, None, None, None, None]
+    ax[0] = fig.add_subplot(2, 3, 1)  # row, column, position
     ax[1] = fig.add_subplot(2, 3, 2)
     ax[2] = fig.add_subplot(2, 3, 3)
     ax[3] = fig.add_subplot(2, 3, 5)
     ax[4] = fig.add_subplot(2, 3, 6)
 
-    label=[None,None,None,None,None]
-    label[0] = "pkt arrived in router (base)"
-    label[1] = "pkt arrived in router (mod_XY)"
-    label[2] = "pkt arrived in router (Adaptive)"
-    label[3] = "pkt arrived in router (ELRA)"
-    label[4] = "pkt arrived in router (CA)"
+    label = [None, None, None, None, None]
+    label[0] = "pkt arrived in router (0:base)"
+    label[1] = "pkt arrived in router (1:mod_XY)"
+    label[2] = "pkt arrived in router (2:Adaptive)"
+    label[3] = "pkt arrived in router (3:ELRA)"
+    label[4] = "pkt arrived in router (4:CA)"
 
     for i in range(5):
         m, n = heatmap_list[i].shape
@@ -39,8 +40,16 @@ def heatmap_multiple_display(heatmap_list):
     fig.tight_layout()
     plt.show()
 
-def heatmap_display(heatmap_arr):
+
+def heatmap_display(heatmap_arr, algo_type):
     m, n = heatmap_arr.shape
+
+    label = [None, None, None, None, None]
+    label[0] = "pkt arrived in router (0:base)"
+    label[1] = "pkt arrived in router (1:mod_XY)"
+    label[2] = "pkt arrived in router (2:Adaptive)"
+    label[3] = "pkt arrived in router (3:ELRA)"
+    label[4] = "pkt arrived in router (4:CA)"
 
     fig, ax = plt.subplots()
     im, cbar = heatmap(
@@ -49,7 +58,7 @@ def heatmap_display(heatmap_arr):
         np.arange(n),
         ax=ax,
         cmap="YlGn",
-        cbarlabel="packets arrived in router",
+        cbarlabel=label[algo_type],
     )
     texts = annotate_heatmap(im, valfmt="{x:d}")
 
