@@ -32,11 +32,20 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="noc simulator")
+    parser = argparse.ArgumentParser(description="noc simulator", formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("--m", type=int, default="4", help="m, number of rows")
     parser.add_argument("--n", type=int, default="4", help="n, number of column")
     parser.add_argument(
-        "--algo_type", type=int, default="0", help="type of routers to test"
+        "--algo_type",
+        type=int,
+        default="0",
+        help="""type of routers to test.
+        0:basic XY,
+        1:modified XY,
+        2:Adaptive Routing,
+        3:ELRA,
+        4:CA router
+        5:all routers""",
     )
     parser.add_argument("--cycle_limit", type=int, default="200", help="cycles limit")
     parser.add_argument(

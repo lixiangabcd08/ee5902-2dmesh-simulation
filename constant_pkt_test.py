@@ -2,8 +2,7 @@ import argparse
 import time
 import numpy as np
 
-from network_map import coordinates_2_id
-from network_map import coordinates_2_id_list
+from sub_simulator_func import create_router_list
 
 from receiver import PacketReceiver as rx
 
@@ -20,6 +19,8 @@ from packet_generator import RandomGenerator
 from packet_generator import ConstGenerator
 
 from heatmap import heatmap_display
+from heatmap import heatmap_multiple_display
+
 
 def sub_simulator(args, noc_map, noc_map_nodes):
     m, n = args.m, args.n
@@ -28,43 +29,11 @@ def sub_simulator(args, noc_map, noc_map_nodes):
     load_cycles = args.load_cycles
     algo_type = args.algo_type
     number_of_routers = m * n
-    router_list = []
-    receiver_list = []
 
     start_time = time.time()
 
     # create the routers and map them
-    for router_id in range(number_of_routers):
-        # receiver to store the packets from routers
-        rx_address = rx(router_id)
-        receiver_list.append(rx_address)
-
-        # get the parameters
-        coordinates = noc_map_nodes[router_id]
-        neighbours_coordinates = list(noc_map.adj[coordinates])
-        neighbours_id = coordinates_2_id_list(neighbours_coordinates, m, n)
-        # create the router based on algo
-        if algo_type == 4:
-            router_list.append(CARouter(router_id, coordinates, rx_address))
-        elif (algo_type == 3):  
-            router_list.append(ELRARouter(router_id, coordinates, rx_address))
-        elif (algo_type == 2): 
-            router_list.append(ARouter(router_id, coordinates, rx_address))
-        elif (algo_type == 1):
-            router_list.append(modXYRouter(router_id, coordinates, rx_address))
-        else:
-            router_list.append(Router(router_id, coordinates, rx_address))
-
-    # This can only be done after all the routers are initiated
-    for router_id in range(number_of_routers):
-        # get the parameters
-        coordinates = noc_map_nodes[router_id]
-        neighbours_coordinates = list(noc_map.adj[coordinates])
-        neighbours_id = coordinates_2_id_list(neighbours_coordinates, m, n)
-        neighbour_routers = [
-            router_list[neighbour_id] for neighbour_id in neighbours_id
-        ]
-        router_list[router_id].setup_router(neighbour_routers)
+    router_list, receiver_list = create_router_list(args, noc_map,noc_map_nodes)
 
     # init the packet generator
     generator= ConstGenerator(m, n) # greate the sir, less likely packets are generated
@@ -123,3 +92,7 @@ def sub_simulator(args, noc_map, noc_map_nodes):
 
     noc_heatmap = np.reshape(noc_heatmap, (m,n))
     heatmap_display(noc_heatmap)
+
+    # noc_heatmap_list=[noc_heatmap,noc_heatmap,noc_heatmap,noc_heatmap,noc_heatmap]
+
+    # heatmap_multiple_display(noc_heatmap_list)

@@ -7,6 +7,37 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 
+def heatmap_multiple_display(heatmap_list):
+
+    fig = plt.figure()
+    ax=[None,None,None,None,None]
+    ax[0] = fig.add_subplot(2, 3, 1) # row, column, position
+    ax[1] = fig.add_subplot(2, 3, 2)
+    ax[2] = fig.add_subplot(2, 3, 3)
+    ax[3] = fig.add_subplot(2, 3, 5)
+    ax[4] = fig.add_subplot(2, 3, 6)
+
+    label=[None,None,None,None,None]
+    label[0] = "pkt arrived in router (base)"
+    label[1] = "pkt arrived in router (mod_XY)"
+    label[2] = "pkt arrived in router (Adaptive)"
+    label[3] = "pkt arrived in router (ELRA)"
+    label[4] = "pkt arrived in router (CA)"
+
+    for i in range(5):
+        m, n = heatmap_list[i].shape
+        im, cbar = heatmap(
+            heatmap_list[i],
+            np.arange(m),
+            np.arange(n),
+            ax=ax[i],
+            cmap="YlGn",
+            cbarlabel=label[i],
+        )
+        texts = annotate_heatmap(im, valfmt="{x:d}")
+
+    fig.tight_layout()
+    plt.show()
 
 def heatmap_display(heatmap_arr):
     m, n = heatmap_arr.shape
