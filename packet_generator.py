@@ -107,6 +107,10 @@ class ConstGenerator(Generator):
             ini_coordinates = id_2_coordinates(router_id,self.m,self.n)
             pkt = StatPacket(router_id,self.dest_coordinates,ini_coordinates,current_clock_cycle)
             self.packet_sum += 1
+        elif(int(router_id%self.n) == self.n-1) and (router_id != self.m*self.n-1):
+            ini_coordinates = id_2_coordinates(router_id,self.m,self.n)
+            pkt = StatPacket(router_id,self.dest_coordinates,ini_coordinates,current_clock_cycle)
+            self.packet_sum += 1
         else:
             pkt = None
         return pkt

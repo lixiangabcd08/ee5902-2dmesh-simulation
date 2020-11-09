@@ -67,7 +67,7 @@ if __name__ == "__main__":
         4:CA router
         5:all routers""",
     )
-    parser.add_argument("--cycle_limit", type=int, default="300", help="cycles limit")
+    parser.add_argument("--cycle_limit", type=int, default="500", help="cycles limit")
     parser.add_argument(
         "--load_cycles",
         type=int,
@@ -84,7 +84,7 @@ if __name__ == "__main__":
         "--test_mode",
         type=int,
         default="0",
-        help="0->single pkt test, 1->random pkt test, 2->congestion pkt test",
+        help="0->single pkt test, 1->random pkt test, 2->congestion awareness test",
     )
     parser.add_argument(
         "--verbose",

@@ -37,9 +37,6 @@ def sub_simulator(args, noc_map, noc_map_nodes):
 
     fout = open(sim_data_path, "w")
 
-    # init the packet generator
-    generator = Generator(m, n)
-
     # set the algo types to run
     if algo_type == 5:  # loop all
         algo_type_list = [0, 1, 2, 3, 4]
@@ -54,6 +51,9 @@ def sub_simulator(args, noc_map, noc_map_nodes):
         print(out_str, end="")
 
         start_time = time.time()
+
+        # init the packet generator
+        generator = Generator(m, n)
 
         # create the routers and map them
         router_list, receiver_list = sim_func.create_router_list(args, noc_map,noc_map_nodes)
@@ -106,9 +106,9 @@ def sub_simulator(args, noc_map, noc_map_nodes):
             #     print("current_clock_cycle = ", current_clock_cycle)
 
             if empty_flag:  # all routers has cleared their buffer
-                str1 = ("ending cycle = %d" % current_clock_cycle)
-                print(str1, end="")
+                str1 = ("ending cycle = %d\n" % current_clock_cycle)
                 fout.write(str1)
+                print(str1, end="")
                 break
 
         print("--- time taken: %s seconds ---" % (time.time() - start_time))  # time
@@ -123,3 +123,5 @@ def sub_simulator(args, noc_map, noc_map_nodes):
             heatmap_display(noc_heatmap_list[0], algo_type)
         else:
             heatmap_multiple_display(noc_heatmap_list)
+
+    fout.close()

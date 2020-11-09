@@ -18,12 +18,13 @@ def heatmap_multiple_display(heatmap_list):
     ax[3] = fig.add_subplot(2, 3, 5)
     ax[4] = fig.add_subplot(2, 3, 6)
 
-    label = [None, None, None, None, None]
-    label[0] = "pkt arrived in router (0:base)"
-    label[1] = "pkt arrived in router (1:mod_XY)"
-    label[2] = "pkt arrived in router (2:Adaptive)"
-    label[3] = "pkt arrived in router (3:ELRA)"
-    label[4] = "pkt arrived in router (4:CA)"
+    labels = [
+        "pkt arrived in router (0:base)",
+        "pkt arrived in router (1:MXY)",
+        "pkt arrived in router (2:AR)",
+        "pkt arrived in router (3:ELRA)",
+        "pkt arrived in router (4:CA)",
+    ]
 
     for i in range(5):
         m, n = heatmap_list[i].shape
@@ -33,7 +34,7 @@ def heatmap_multiple_display(heatmap_list):
             np.arange(n),
             ax=ax[i],
             cmap="YlGn",
-            cbarlabel=label[i],
+            cbarlabel=labels[i],
         )
         texts = annotate_heatmap(im, valfmt="{x:d}")
 
@@ -44,12 +45,13 @@ def heatmap_multiple_display(heatmap_list):
 def heatmap_display(heatmap_arr, algo_type):
     m, n = heatmap_arr.shape
 
-    label = [None, None, None, None, None]
-    label[0] = "pkt arrived in router (0:base)"
-    label[1] = "pkt arrived in router (1:mod_XY)"
-    label[2] = "pkt arrived in router (2:Adaptive)"
-    label[3] = "pkt arrived in router (3:ELRA)"
-    label[4] = "pkt arrived in router (4:CA)"
+    labels = [
+        "pkt arrived in router (0:base)",
+        "pkt arrived in router (1:MXY)",
+        "pkt arrived in router (2:AR)",
+        "pkt arrived in router (3:ELRA)",
+        "pkt arrived in router (4:CA)",
+    ]
 
     fig, ax = plt.subplots()
     im, cbar = heatmap(
@@ -58,7 +60,7 @@ def heatmap_display(heatmap_arr, algo_type):
         np.arange(n),
         ax=ax,
         cmap="YlGn",
-        cbarlabel=label[algo_type],
+        cbarlabel=labels[algo_type],
     )
     texts = annotate_heatmap(im, valfmt="{x:d}")
 

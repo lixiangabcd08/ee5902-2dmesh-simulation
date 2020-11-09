@@ -35,9 +35,6 @@ def sub_simulator(args, noc_map, noc_map_nodes):
 
     fout = open(sim_data_path, "w")
 
-    # init the packet generator
-    generator = ConstGenerator(m, n)
-
     # set the algo types to run
     if algo_type == 5:  # loop all
         algo_type_list = [0, 1, 2, 3, 4]
@@ -53,6 +50,9 @@ def sub_simulator(args, noc_map, noc_map_nodes):
 
         start_time = time.time()
 
+        # init the packet generator
+        generator = ConstGenerator(m, n)
+
         # create the routers and map them
         router_list, receiver_list = sim_func.create_router_list(
             args, noc_map, noc_map_nodes
@@ -60,6 +60,9 @@ def sub_simulator(args, noc_map, noc_map_nodes):
 
         # number of cycles to simulate for single packet testing
         for current_clock_cycle in range(cycle_limit):
+
+            empty_flag = True
+
             """ set up the testing packets in load_cycles """
             if current_clock_cycle < load_cycles:
                 for router in router_list:
@@ -70,7 +73,7 @@ def sub_simulator(args, noc_map, noc_map_nodes):
                     if pk is not None:  # no packet from this router
                         router.packet_in(pk, 0)
 
-            empty_flag = True
+                empty_flag = False  # prevent early termination
 
             """ This is to run the routers for 1 cycle to send out pkt """
             for router_id in range(number_of_routers):
@@ -90,9 +93,9 @@ def sub_simulator(args, noc_map, noc_map_nodes):
             #     print("current_clock_cycle = ", current_clock_cycle)
 
             if empty_flag:  # all routers has cleared their buffer
-                str1 = ("ending cycle = %d" % current_clock_cycle)
-                print(str1, end="")
+                str1 = ("ending cycle = %d\n" % current_clock_cycle)
                 fout.write(str1)
+                print(str1, end="")
                 break
 
         print("--- time taken: %s seconds ---" % (time.time() - start_time))  # time
