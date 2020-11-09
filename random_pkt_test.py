@@ -98,6 +98,7 @@ def sub_simulator(args, noc_map, noc_map_nodes):
                 break
 
         print("--- time taken: %s seconds ---" % (time.time() - start_time))  # time
+        print("--- Total packets sent: %s ---" % (generator.get_packet_sent_sum()))
         # collect the statistics
         noc_heatmap = sim_func.stats_collection(receiver_list, fout, args)
         noc_heatmap_list.append(noc_heatmap)

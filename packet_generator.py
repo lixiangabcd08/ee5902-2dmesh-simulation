@@ -9,9 +9,11 @@ class Generator():
     def __init__(self, m, n):
         self.m = m
         self.n = n
+        self.packet_sum = 0
     
     # generate a single StatPacket packet according to the user input
     def generate_single(self, source_id, dest_coordinates, current_coordinates, current_clock_cycle):
+        self.packet_sum += 1
         return StatPacket(source_id,dest_coordinates,current_coordinates,current_clock_cycle)
 
     # generate a random single StatPacket packet, ignore mapping
@@ -23,12 +25,19 @@ class Generator():
             if ini_point != des_point: # make sure the two points are not identical
                 has_two_points = True
         source_id = coordinates_2_id(ini_point,self.m,self.n)
+        self.packet_sum += 1
         return StatPacket(source_id,des_point,ini_point, current_clock_cycle)
 
     def gen_random_point(self):
         coordinate_x = random.randint(0,self.m-1)
         coordinate_y = random.randint(0,self.n-1)
         return (coordinate_x, coordinate_y)
+
+    def get_packet_sent_sum(self):
+        """
+        return the number of packets sent out in total
+        """
+        return self.packet_sum
 
 
 class RandomGenerator(Generator):
@@ -82,6 +91,7 @@ class RandomGenerator(Generator):
             self.generate_packets(router_id,current_clock_cycle)
         if len(self.packets[router_id]) > 0 and is_empty: # has packet
             pkt = self.packets[router_id].pop(0)
+            self.packet_sum += 1
         else:
             pkt = None
         return pkt
@@ -96,6 +106,7 @@ class ConstGenerator(Generator):
         if int(router_id/self.n) == router_id%self.n and router_id != self.m*self.n-1: # node on diagonal and not the last node
             ini_coordinates = id_2_coordinates(router_id,self.m,self.n)
             pkt = StatPacket(router_id,self.dest_coordinates,ini_coordinates,current_clock_cycle)
+            self.packet_sum += 1
         else:
             pkt = None
         return pkt
