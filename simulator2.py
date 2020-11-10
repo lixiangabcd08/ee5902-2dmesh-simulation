@@ -54,7 +54,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="noc simulator", formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("--m", type=int, default="4", help="m, number of rows")
-    parser.add_argument("--n", type=int, default="4", help="n, number of column")
+    parser.add_argument("--n", type=int, default="4", help="n, number of columns")
     parser.add_argument(
         "--algo_type",
         type=int,
@@ -87,6 +87,12 @@ if __name__ == "__main__":
         help="0->single pkt test, 1->random pkt test, 2->congestion awareness test",
     )
     parser.add_argument(
+        "--runs",
+        type=int,
+        default="1",
+        help="number of runs in random pkt test",
+    )
+    parser.add_argument(
         "--verbose",
         type=int,
         default="0",
@@ -107,6 +113,12 @@ if __name__ == "__main__":
         type=str,
         default="./sim_data.txt",
         help="path to save the simulation data",
+    )
+    parser.add_argument(
+        "--sim_summary_path",
+        type=str,
+        default="./sim_summary.txt",
+        help="path to save the simulation data summary, for random pkt test",
     )
     args = parser.parse_args()
 
