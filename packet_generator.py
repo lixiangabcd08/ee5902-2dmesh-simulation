@@ -96,7 +96,7 @@ class RandomGenerator(Generator):
         """
         for router_id in range(self.m * self.n):
             for current_clock_cycle in range(load_cycles):
-                if (np.random.uniform(0, 10) > self.rate):
+                if (np.random.uniform(0, 10) >(10-self.rate)):
                     # if the random number is greater than the rate
                     self.generate_packets(router_id, current_clock_cycle)
             

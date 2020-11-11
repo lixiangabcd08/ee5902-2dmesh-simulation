@@ -21,6 +21,10 @@ Project for EE5902
 
 ## Instructions
 use simulator.py to run
+`python3 simulator.py <optional parameters>`
+
+
+## Optional Parameters
 
 ### single packet test
 --test_mode 0
@@ -32,7 +36,7 @@ use simulator.py to run
 --test_mode 2
 
 
-## parameters
+## Other parameters
 1. --m, type=int, default=4
     - number of rows
 2. --n, type=int, default=4
@@ -44,11 +48,11 @@ use simulator.py to run
     - 3:ELRA,
     - 4:CA router
     - 5:all routers
-4. --cycle_limit, type=int, default=500
+4. --cycle_limit, type=int, default=1000
 5. --load_cycles, type=int. default=20
     - cycles to inject packets in test mode 2
 6. --target_rate, type=float, default=5
-    - rate to send spikes in test mode 1, keep sending 0-10 no sending
+    - rate to send spikes in test mode 1, keep sending 10 - 0 no sending
 7. --test_mode, type=int, default=1
     - 0->single pkt test,
     - 1->random pkt test,
