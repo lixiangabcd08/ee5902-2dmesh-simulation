@@ -1,6 +1,12 @@
 # 2D NoC Routing Strategies & Performance Evaluation for SNN
 Project for EE5902
 
+## modules required
+- Python 3.7
+- matplotlib 3.3.2
+- networkx 2.5
+- numpy 1.19.1
+
 ## Files included
 1. simulator.py
 2. single_pkt_test.py
@@ -23,8 +29,11 @@ Project for EE5902
 use simulator.py to run
 `python3 simulator.py <optional parameters>`
 
+Observe the outputs on terminal or read the sim_data.txt, sim_summary.txt
 
-## Optional Parameters
+The default parameters are used in the test. If you want more data, see parameters
+
+## recommend Parameters
 
 ### single packet test
 --test_mode 0
@@ -36,7 +45,7 @@ use simulator.py to run
 --test_mode 2
 
 
-## Other parameters
+## All parameters
 1. --m, type=int, default=4
     - number of rows
 2. --n, type=int, default=4
@@ -52,7 +61,7 @@ use simulator.py to run
 5. --load_cycles, type=int. default=20
     - cycles to inject packets in test mode 2
 6. --target_rate, type=float, default=5
-    - rate to send spikes in test mode 1, keep sending 10 - 0 no sending
+    - probability of sending spikes in test mode 1, low 0-10 high
 7. --test_mode, type=int, default=1
     - 0->single pkt test,
     - 1->random pkt test,

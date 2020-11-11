@@ -1,5 +1,5 @@
 """
-aim is to link the x,y to the id
+functions to link the coordinates x,y and id
 """
 
 

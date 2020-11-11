@@ -1,5 +1,5 @@
 """
-Module: simulator2
+Module: simulator
 Desp:   top wrapper for 2D mesh NoC simulator
 version: 0.0.1
 
@@ -78,7 +78,7 @@ if __name__ == "__main__":
         "--target_rate",
         type=float,
         default="5",
-        help="rate to send spikes in test mode 1, keep sending 0-10 no sending ",
+        help="probability of sending spikes in test mode 1, low 0-10 high",
     )
     parser.add_argument(
         "--test_mode",
