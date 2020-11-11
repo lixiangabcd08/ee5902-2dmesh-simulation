@@ -90,9 +90,15 @@ def sub_simulator(args, noc_map, noc_map_nodes):
                             router.buffer_empty_actual(0),
                         )
                         if pk is not None:  # no packet from this router
+                            # print(router.id, pk.current_coordinates)
                             router.packet_in(pk, 0)
 
                     empty_flag = False  # prevent early termination
+
+                    # for id, pkt_list in enumerate (generator.packets):
+                    #     print("------%d--------", id)
+                    #     for pkt in pkt_list:
+                    #         print(pkt.source_id, pkt.current_coordinates)
 
                 """ This is to run the routers for 1 cycle to send out pkt """
                 for router_id in range(number_of_routers):
