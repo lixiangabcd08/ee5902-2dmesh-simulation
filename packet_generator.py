@@ -129,7 +129,7 @@ class RandomGenerator(Generator):
             # check if the pkt is for current cycle
             pkt = self.packets[router_id][pkt_index]
             while (pkt.start_clock_cycle == current_clock_cycle):
-                pkt = copy.copy(self.packets[router_id][pkt_index])  # copy pkt
+                pkt = copy.deepcopy(self.packets[router_id][pkt_index])  # copy pkt
                 pkt_list.append(pkt)
                 self.packet_sum += 1
                 pkt_index += 1

@@ -26,7 +26,7 @@ use simulator.py to run
 --test_mode 0
 
 ### for random packet test
---test_mode 1 --load_cycles 100 --target_rate <fill in 0-10>
+--test_mode 1 --load_cycles 20 --target_rate <fill in 0-10>
 
 ### for constant packet test
 --test_mode 2

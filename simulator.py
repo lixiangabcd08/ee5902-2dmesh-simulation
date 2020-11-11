@@ -1,5 +1,5 @@
 """
-Module: simulator
+Module: simulator2
 Desp:   top wrapper for 2D mesh NoC simulator
 version: 0.0.1
 
@@ -54,7 +54,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="noc simulator", formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("--m", type=int, default="4", help="m, number of rows")
-    parser.add_argument("--n", type=int, default="4", help="n, number of column")
+    parser.add_argument("--n", type=int, default="4", help="n, number of columns")
     parser.add_argument(
         "--algo_type",
         type=int,
@@ -67,7 +67,7 @@ if __name__ == "__main__":
         4:CA router
         5:all routers""",
     )
-    parser.add_argument("--cycle_limit", type=int, default="300", help="cycles limit")
+    parser.add_argument("--cycle_limit", type=int, default="1000", help="cycles limit")
     parser.add_argument(
         "--load_cycles",
         type=int,
@@ -78,13 +78,19 @@ if __name__ == "__main__":
         "--target_rate",
         type=float,
         default="5",
-        help="rate to send spikes in test mode 1",
+        help="rate to send spikes in test mode 1, keep sending 0-10 no sending ",
     )
     parser.add_argument(
         "--test_mode",
         type=int,
         default="0",
-        help="0->single pkt test, 1->random pkt test, 2->congestion pkt test",
+        help="0->single pkt test, 1->random pkt test, 2->congestion awareness test",
+    )
+    parser.add_argument(
+        "--runs",
+        type=int,
+        default="1",
+        help="number of runs in random pkt test",
     )
     parser.add_argument(
         "--verbose",
@@ -107,6 +113,12 @@ if __name__ == "__main__":
         type=str,
         default="./sim_data.txt",
         help="path to save the simulation data",
+    )
+    parser.add_argument(
+        "--sim_summary_path",
+        type=str,
+        default="./sim_summary.txt",
+        help="path to save the simulation data summary, for random pkt test",
     )
     args = parser.parse_args()
 

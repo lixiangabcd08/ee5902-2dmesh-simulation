@@ -67,7 +67,7 @@ if __name__ == "__main__":
         4:CA router
         5:all routers""",
     )
-    parser.add_argument("--cycle_limit", type=int, default="500", help="cycles limit")
+    parser.add_argument("--cycle_limit", type=int, default="1000", help="cycles limit")
     parser.add_argument(
         "--load_cycles",
         type=int,

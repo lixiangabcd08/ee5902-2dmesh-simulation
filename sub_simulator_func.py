@@ -80,7 +80,6 @@ def summary(packet_sent, cycle_taken, fsum):
     summary_str = ""
     number_of_runs = len(cycle_taken)
     number_of_algo_type = len(cycle_taken[0])  # always have at least 1 run 
-    print(("i am here"), number_of_runs, number_of_algo_type)
     # loop through the algo_type
     for algo_type in range(number_of_algo_type):
         throughput = []
