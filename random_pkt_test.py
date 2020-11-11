@@ -36,6 +36,9 @@ def sub_simulator(args, noc_map, noc_map_nodes):
     sim_summary_path = args.sim_summary_path
     number_of_routers = m * n
     noc_heatmap_list = []
+    cycle_taken = [[] for j in range(number_of_runs)]  # order by runs
+    packet_sent = [[] for j in range(number_of_runs)]
+    throughput = [[] for j in range(number_of_runs)]
 
     fout = open(sim_data_path, "w")
     fsum = open(sim_summary_path, "w")
@@ -49,56 +52,51 @@ def sub_simulator(args, noc_map, noc_map_nodes):
     else:  # only run the selected one
         algo_type_list = [algo_type]
 
+
     # run the simulation
-    for algo_type in algo_type_list:
-        args.algo_type = algo_type  # edit the algo_type
-        out_str = "*************** For algo %d ***************\n" % algo_type
+    for run in range(number_of_runs):
+        out_str = "-------- Algo %d - Run %d --------\n" % (algo_type, run)
         fout.write(out_str)
         print(out_str, end="")
 
-        cycle_taken = []
-        packet_sent = []
-        throughput = []
-        start_time = time.time()
+        # init the packet generator to be used for the run
+        generator = RandomGenerator(
+            m, n, rate=target_rate, load_cycles=load_cycles,
+        )  # greater the rate, less likely packets are generated
 
-        for run in range(number_of_runs):
-            out_str = "-------- Algo %d - Run %d --------\n" % (algo_type, run)
+
+        for algo_type in algo_type_list:
+            args.algo_type = algo_type  # edit the algo_type
+            out_str = "*************** For algo %d ***************\n" % algo_type
             fout.write(out_str)
             print(out_str, end="")
-            # init the packet generator
-            generator = RandomGenerator(
-                m, n, rate=target_rate
-            )  # greater the rate, less likely packets are generated
 
+            start_time = time.time()
             # create the routers and map them
             router_list, receiver_list = sim_func.create_router_list(
-                args, noc_map, noc_map_nodes
+                args, noc_map, noc_map_nodes,
             )
+
+            # soft reset the stats in generator
+            generator.soft_reset()
 
             # number of cycles to simulate for single packet testing
             for current_clock_cycle in range(cycle_limit):
 
-                empty_flag = True
+                if current_clock_cycle < load_cycles:
+                    empty_flag = False  # prevent early termination
+                else:
+                    empty_flag = True
 
                 """ set up the testing packets in each cycle """
-                if current_clock_cycle < load_cycles:
-                    for router in router_list:
-                        # each router have possibility to initiate packet
-                        pk = generator.get_packet(
-                            router.id,
-                            current_clock_cycle,
-                            router.buffer_empty_actual(0),
-                        )
-                        if pk is not None:  # no packet from this router
-                            # print(router.id, pk.current_coordinates)
-                            router.packet_in(pk, 0)
-
-                    empty_flag = False  # prevent early termination
-
-                    # for id, pkt_list in enumerate (generator.packets):
-                    #     print("------%d--------", id)
-                    #     for pkt in pkt_list:
-                    #         print(pkt.source_id, pkt.current_coordinates)
+                for router in router_list:
+                    # each router have possibility to initiate packet
+                    pk_list = generator.get_pkt_list(
+                        router.id,
+                        current_clock_cycle,
+                    )
+                    if pk_list is not None:  # no packet from this router
+                        router.packet_in_all(pk_list)
 
                 """ This is to run the routers for 1 cycle to send out pkt """
                 for router_id in range(number_of_routers):
@@ -118,7 +116,7 @@ def sub_simulator(args, noc_map, noc_map_nodes):
                 #     print("current_clock_cycle = ", current_clock_cycle)
 
                 if empty_flag:  # all routers has cleared their buffer
-                    cycle_taken.append(current_clock_cycle)
+                    cycle_taken[run].append(current_clock_cycle)
                     str1 = "ending cycle = %d\n" % current_clock_cycle
                     fout.write(str1)
                     print(str1, end="")
@@ -129,18 +127,10 @@ def sub_simulator(args, noc_map, noc_map_nodes):
             # collect the statistics
             noc_heatmap = sim_func.stats_collection(receiver_list, fout, args)
             noc_heatmap_list.append(noc_heatmap)
-            packet_sent.append(generator.get_packet_sent_sum())
+            packet_sent[run].append(generator.get_packet_sent_sum())
 
-        # summary for the runs
-        for index in range(len(cycle_taken)):
-            throughput.append(packet_sent[index] / cycle_taken[index])
-        avg_throughput = np.average(throughput)
-        summary_str = "******Algo %d summary*******\n" % algo_type
-        summary_str += "cycle_taken=%s\n" % str(cycle_taken)
-        summary_str += "pkt sent=%s\n" % str(packet_sent)
-        summary_str += "average throughput = %f\n" % avg_throughput
-        fsum.write(summary_str)
-        print(summary_str)
+    # summary for the runs
+    sim_func.summary(packet_sent, cycle_taken, fsum)
 
     # final output for heat map, only for 1 run
     if verbose == 3 and number_of_runs == 1:

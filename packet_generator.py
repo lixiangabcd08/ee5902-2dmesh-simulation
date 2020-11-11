@@ -3,12 +3,16 @@ from network_map import coordinates_2_id, id_2_coordinates
 import random
 import math
 import numpy as np
+import copy
 
 ### This generator generate random package
 class Generator:
     def __init__(self, m, n):
         self.m = m
         self.n = n
+        self.packet_sum = 0
+    
+    def soft_reset(self):
         self.packet_sum = 0
 
     # generate a single StatPacket packet according to the user input
@@ -45,12 +49,13 @@ class Generator:
 
 
 class RandomGenerator(Generator):
-    # rate should be a value between -10 and 10
-    def __init__(self, m, n, rate=5):
+    # rate should be a value between 0 and 10
+    def __init__(self, m, n, rate=5, load_cycles = 10):
         super().__init__(m, n)
         self.rate = rate
         # store packets for send for each node
         self.packets = [[] for j in range(m * n)]
+        self.current_pkt_index = [0 for j in range(m * n)]
 
         # create the map
         # for example, 9 nodes will create a map of [0,1,2,3,4],[5,6,7],[8]
@@ -72,12 +77,29 @@ class RandomGenerator(Generator):
             layer_node_no = math.ceil(
                 int(layer_node_no / 2)
             )  # number of nodes in the next layer should be half of the one in the current layer
+        
+        self.pre_generate_pkt(load_cycles)
+
+    def soft_reset(self):
+        self.packet_sum = 0
+        self.current_pkt_index = [0 for j in range(self.m * self.n)]
 
     def get_layer_no(self, node_id):
         for index, layer in enumerate(self.nodes_map):
             if layer[1] >= node_id:
                 return index
 
+    def pre_generate_pkt(self, load_cycles):
+        """
+        generate the list of packets to be use for testing based on the 
+        load cycles and rate
+        """
+        for router_id in range(self.m * self.n):
+            for current_clock_cycle in range(load_cycles):
+                if (np.random.uniform(0, 10) > self.rate):
+                    # if the random number is greater than the rate
+                    self.generate_packets(router_id, current_clock_cycle)
+            
     # generate a list of packet which follows the mapping guideline
     def generate_packets(self, source_id, current_clock_cycle):
         ini_coordinates = id_2_coordinates(source_id, self.m, self.n)
@@ -99,18 +121,26 @@ class RandomGenerator(Generator):
                 node_no += 1
             self.packets[source_id] += node_packets
 
-    def get_packet(self, router_id, current_clock_cycle, is_empty):
-        # Gaussian random values of average 0 and standard deviation of 1
-        if (
-            np.random.uniform(0, 10) > self.rate
-        ):  # if the random number is greater than the rate
-            self.generate_packets(router_id, current_clock_cycle)
-        if len(self.packets[router_id]) > 0 and is_empty:  # has packet
-            pkt = self.packets[router_id].pop(0)
-            self.packet_sum += 1
-        else:
-            pkt = None
-        return pkt
+    def get_pkt_list(self, router_id, current_clock_cycle):
+        pkt_list =[]
+        pkt_index = self.current_pkt_index[router_id]
+        # print((self.packets[router_id]))
+        if pkt_index < (len(self.packets[router_id])):  # has packet
+            # check if the pkt is for current cycle
+            pkt = self.packets[router_id][pkt_index]
+            while (pkt.start_clock_cycle == current_clock_cycle):
+                pkt = copy.copy(self.packets[router_id][pkt_index])  # copy pkt
+                pkt_list.append(pkt)
+                self.packet_sum += 1
+                pkt_index += 1
+                # prepare for next loop
+                try:  # next packet might be end of list
+                    pkt = self.packets[router_id][pkt_index]
+                except IndexError:
+                    break
+
+        self.current_pkt_index[router_id] = pkt_index  # save the index
+        return pkt_list
 
 
 # congestion generator

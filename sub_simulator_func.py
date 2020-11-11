@@ -76,6 +76,34 @@ def stats_collection(receiver_list, fout, args):
     return noc_heatmap
 
 
+def summary(packet_sent, cycle_taken, fsum):
+    summary_str = ""
+    number_of_runs = len(cycle_taken)
+    number_of_algo_type = len(cycle_taken[0])  # always have at least 1 run 
+    print(("i am here"), number_of_runs, number_of_algo_type)
+    # loop through the algo_type
+    for algo_type in range(number_of_algo_type):
+        throughput = []
+        algo_cycles = []
+        algo_packets = []
+        # then the runs
+        for run in range(number_of_runs):
+            run_packet = packet_sent[run][algo_type]
+            run_cycle = cycle_taken[run][algo_type]
+            algo_packets.append(run_packet)
+            algo_cycles.append(run_cycle)
+            throughput.append(run_packet / run_cycle)
+
+        avg_throughput = np.average(throughput)
+        summary_str += "******Algo %d summary*******\n" % algo_type
+        summary_str += "cycle_taken=%s\n" % str(algo_cycles)
+        summary_str += "pkt sent=%s\n" % str(algo_packets)
+        summary_str += "average throughput = %f\n" % avg_throughput
+
+    fsum.write(summary_str)
+    print(summary_str)
+
+
 def total_pkt_count(receiver_list, fout):
     count = 0
     for receiver in receiver_list:

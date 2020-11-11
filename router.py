@@ -79,8 +79,11 @@ class BaseRouter:
             packet.update_packet(self.id, self.coordinates)
             self.buffer[port].append(packet)
             return True
-    # def packet_in_all(self, pack_list):
-    #     """ for packet generator to generate
+
+    def packet_in_all(self, pkt_list):
+        """ for packet generator to store all the input packets """
+        for pk in pkt_list:
+            self.packet_in(pk, 0)
 
     def packet_store(self, packet, current_clock_cycle):
         """ store to local storage """
