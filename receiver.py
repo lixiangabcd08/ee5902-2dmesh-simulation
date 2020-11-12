@@ -73,10 +73,12 @@ class PacketReceiver(BaseReceiver):
                         print(pkt_string, end="")
 
             if verbose >= 1:
-                avg_string = "average clk cycles = %.2f\n" % np.average(clocks_taken)
+                avg_string = "avg pkt latency (cycles) = %.2f\n" % np.average(
+                    clocks_taken
+                )
                 for source in clock_taken_by_source:
                     avg_string += (
-                        "average clk cycles from router %d = %.2f in %d packets\n"
+                        "avg pkt latency from router %d = %.2f in %d packets\n"
                         % (
                             source,
                             np.average(clock_taken_by_source[source]),

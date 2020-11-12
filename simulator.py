@@ -52,7 +52,9 @@ def main(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="noc simulator", formatter_class=argparse.RawTextHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description="noc simulator", formatter_class=argparse.RawTextHelpFormatter
+    )
     parser.add_argument("--m", type=int, default="4", help="m, number of rows")
     parser.add_argument("--n", type=int, default="4", help="n, number of columns")
     parser.add_argument(

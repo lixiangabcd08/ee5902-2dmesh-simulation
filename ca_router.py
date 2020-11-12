@@ -16,16 +16,16 @@ class CARouter(BaseRouter):
     def __init__(self, id, coordinates, rx_address):
         super().__init__(id, coordinates, rx_address)
 
-    def get_busy_index(self,channel):
+    def get_busy_index(self, channel):
         """
         Func: calculate the busy index using look up table
         """
         full = 0
         half_full = 0
-        for buffer in (self.buffer):
+        for buffer in self.buffer:
             if len(buffer) == self.buffer_size:
                 full += 1
-            if len(buffer) >= (self.buffer_size/2):
+            if len(buffer) >= (self.buffer_size / 2):
                 half_full += 1
         c_full = True if len(self.buffer[channel]) == self.buffer_size else False
         busy_index = None
@@ -52,23 +52,25 @@ class CARouter(BaseRouter):
     def arbiter(self, dest_coordinates):
         """
         Algo: Congestion Aware router
-        Details: Decide on whether to go X direction or Y direction based on 
+        Details: Decide on whether to go X direction or Y direction based on
         which one is free
         """
-        direction = None 
+        direction = None
         ex = dest_coordinates[1] - self.coordinates[1]
         ey = dest_coordinates[0] - self.coordinates[0]
 
         if ex > 0:
             if ey > 0:
-                if self.neighbour_routers[self.SOUTH].get_busy_index(self.SOUTH) >= \
-                self.neighbour_routers[self.EAST].get_busy_index(self.EAST):
+                if self.neighbour_routers[self.SOUTH].get_busy_index(
+                    self.SOUTH
+                ) >= self.neighbour_routers[self.EAST].get_busy_index(self.EAST):
                     direction = self.EAST
                 else:
                     direction = self.SOUTH
             elif ey < 0:
-                if self.neighbour_routers[self.NORTH].get_busy_index(self.NORTH) >= \
-                self.neighbour_routers[self.EAST].get_busy_index(self.EAST):
+                if self.neighbour_routers[self.NORTH].get_busy_index(
+                    self.NORTH
+                ) >= self.neighbour_routers[self.EAST].get_busy_index(self.EAST):
                     direction = self.EAST
                 else:
                     direction = self.NORTH
@@ -76,24 +78,26 @@ class CARouter(BaseRouter):
                 direction = self.EAST
         elif ex < 0:
             if ey > 0:
-                if self.neighbour_routers[self.SOUTH].get_busy_index(self.SOUTH) >= \
-                self.neighbour_routers[self.WEST].get_busy_index(self.WEST):
+                if self.neighbour_routers[self.SOUTH].get_busy_index(
+                    self.SOUTH
+                ) >= self.neighbour_routers[self.WEST].get_busy_index(self.WEST):
                     direction = self.WEST
                 else:
                     direction = self.SOUTH
             elif ey < 0:
-                if self.neighbour_routers[self.NORTH].get_busy_index(self.NORTH) >= \
-                self.neighbour_routers[self.WEST].get_busy_index(self.WEST):
+                if self.neighbour_routers[self.NORTH].get_busy_index(
+                    self.NORTH
+                ) >= self.neighbour_routers[self.WEST].get_busy_index(self.WEST):
                     direction = self.WEST
                 else:
                     direction = self.NORTH
             else:
                 direction = self.WEST
-        else: # ex==0
+        else:  # ex==0
             if ey > 0:
                 direction = self.SOUTH
             elif ey < 0:
                 direction = self.NORTH
-            else: # reached destination
+            else:  # reached destination
                 direction = self.SELF
         return direction

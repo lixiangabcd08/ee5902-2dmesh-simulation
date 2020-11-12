@@ -93,7 +93,7 @@ def sub_simulator(args, noc_map, noc_map_nodes):
             #     print("current_clock_cycle = ", current_clock_cycle)
 
             if empty_flag:  # all routers has cleared their buffer
-                str1 = ("ending cycle = %d\n" % current_clock_cycle)
+                str1 = "ending cycle = %d\n" % current_clock_cycle
                 fout.write(str1)
                 print(str1, end="")
                 break
