@@ -33,49 +33,50 @@ Observe the outputs on terminal or read the sim_data.txt, sim_summary.txt
 
 The default parameters are used in the test. If you want more data, see parameters
 
-## recommend Parameters
+## Recommend Parameters
 
-### single packet test
---test_mode 0
+### for single packet test
+`--test_mode 0 --verbose 3 --algo_type 5`
 
 ### for random packet test
---test_mode 1 --load_cycles 20 --target_rate <fill in 0-10>
+`--test_mode 1 --verbose 3 --algo_type 5 --target_rate 10 --runs 5 --print_output False`
 
+varies the target_rate between 0-10
 ### for constant packet test
---test_mode 2
+`--test_mode 2 --verbose 3 --algo_type 5`
 
 
 ## All parameters
-1. --m, type=int, default=4
+1. `--m`, type=int, default=4
     - number of rows
-2. --n, type=int, default=4
+2. `--n`, type=int, default=4
     - number of columns
-3. --algo_type, type=int, default=0
+3. `--algo_type`, type=int, default=0
     - 0:basic XY,
     - 1:modified XY,
     - 2:Adaptive Routing,
     - 3:ELRA,
     - 4:CA router
     - 5:all routers
-4. --cycle_limit, type=int, default=1000
-5. --load_cycles, type=int. default=20
+4. `--cycle_limit`, type=int, default=1000
+5. `--load_cycles`, type=int. default=20
     - cycles to inject packets in test mode 2
-6. --target_rate, type=float, default=5
+6. `--target_rate`, type=float, default=5
     - probability of sending spikes in test mode 1, low 0-10 high
-7. --test_mode, type=int, default=1
+7. `--test_mode`, type=int, default=1
     - 0->single pkt test,
     - 1->random pkt test,
     - 2->congestion awareness test
-8. --runs, type=int, default=1
+8. `--runs`, type=int, default=1
     - number of runs in random pkt test
-9. --verbose, type=int, default=0
+9. `--verbose`, type=int, default=0
     - 0->only num of pkt received per router
     - 1-> L0 + average clk cycles
     - 2-> L1 + all packet information
     - 3-> L2 + heatmap
-10. --print_output, type=bool, default=True 
+10. `--print_output`, type=bool, default=True 
     - Whether to print simulator output in terminal
-11. --sim_data_path, type=string, default="./sim_data.txt"
+11. `--sim_data_path`, type=string, default="./sim_data.txt"
     - path to save the simulation data
-12. --sim_summary_path, type=string, default="./sim_summary.txt"
+12. `--sim_summary_path`, type=string, default="./sim_summary.txt"
     - path to save the simulation data summary, for random pkt test
